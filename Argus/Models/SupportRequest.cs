@@ -2,12 +2,12 @@
 
 namespace Argus.Models
 {
-    public class RepairTicket
+    public class SupportRequest
     {
         public Guid Id { get; set; }
         public string Title { get; set; } = string.Empty; // Short title for the repair ticket
         public string Description { get; set; } = string.Empty; // Detailed description of the issue
-        public TicketStatus Status { get; set; } = TicketStatus.New; // Status of the repair ticket
+        public SupportRequestStatus Status { get; set; } = SupportRequestStatus.New; // Status of the repair ticket
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow; // Timestamp when the ticket was created
         public DateTimeOffset? ResolvedAt { get; set; } // Timestamp when the ticket was resolved, nullable if not resolved yet
         public Guid ClientId { get; set; } // Foreign key to the Client who reported the issue

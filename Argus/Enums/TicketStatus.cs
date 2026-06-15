@@ -1,6 +1,6 @@
 ﻿namespace Argus.Enums
 {
-    public enum TicketStatus
+    public enum SupportRequestStatus
     {
         New = 1,
         InWork = 2,
