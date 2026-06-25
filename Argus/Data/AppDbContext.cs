@@ -7,13 +7,13 @@ namespace Argus.Data
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<User> Users { get; set; }
-        public DbSet<Auditorium> Auditoriums { get; set; }
-        public DbSet<Component> Components { get; set; }
+        public DbSet<Auditorium> Auditorium { get; set; }
+        public DbSet<Component> Component { get; set; }
         public DbSet<Equipment> Equipment { get; set; }
-        public DbSet<PlacementHistory> PlacementHistories { get; set; }
-        public DbSet<SupportRequest> SupportRequests { get; set; }
-        public DbSet<SupportRequestComment> SupportRequestComments { get; set; }
-        public DbSet<SupportRequestComponent> SupportRequestComponents { get; set; }
+        public DbSet<PlacementHistory> PlacementHistory { get; set; }
+        public DbSet<SupportRequest> SupportRequest { get; set; }
+        public DbSet<SupportRequestComment> SupportRequestComment { get; set; }
+        public DbSet<SupportRequestComponent> SupportRequestComponent { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

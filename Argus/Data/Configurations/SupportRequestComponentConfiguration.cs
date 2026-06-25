@@ -9,7 +9,7 @@ namespace Argus.Data.Configurations
         public void Configure(EntityTypeBuilder<SupportRequestComponent> builder)
         {
             // 1. Имя таблицы
-            builder.ToTable("SupportRequestComponents");
+            //builder.ToTable("SupportRequestComponents");
 
             // 2. РЕШЕНИЕ ОШИБКИ: Задаем составной первичный ключ
             // EF Core поймет, что уникальность строки определяется связкой Заявка + Деталь

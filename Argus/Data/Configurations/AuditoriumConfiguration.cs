@@ -9,7 +9,7 @@ namespace Argus.Data.Configurations
         public void Configure(EntityTypeBuilder<Auditorium> builder)
         {
             //Explicity set the name of the table in the database
-            builder.ToTable("Auditoriums");
+            //builder.ToTable("Auditorium");
 
             //Specify the Primary Key
             builder.HasKey(a => a.Id);

@@ -1,4 +1,6 @@
 ﻿using Argus.Dtos.Auditoriums;
+using Argus.Dtos.Components;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Argus.Services.Interfaces
 {
