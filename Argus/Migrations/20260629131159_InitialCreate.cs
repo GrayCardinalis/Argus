@@ -13,7 +13,7 @@ namespace Argus.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "auditorium",
+                name: "auditoriums",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -22,11 +22,11 @@ namespace Argus.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_auditorium", x => x.id);
+                    table.PrimaryKey("pk_auditoriums", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "component",
+                name: "components",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -35,11 +35,11 @@ namespace Argus.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_component", x => x.id);
+                    table.PrimaryKey("pk_components", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "equipment",
+                name: "equipments",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -51,7 +51,7 @@ namespace Argus.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_equipment", x => x.id);
+                    table.PrimaryKey("pk_equipments", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -59,9 +59,12 @@ namespace Argus.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    full_name = table.Column<string>(type: "text", nullable: false),
-                    department = table.Column<string>(type: "text", nullable: false),
-                    role = table.Column<int>(type: "integer", nullable: false)
+                    full_name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    department = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    user_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    password_hash = table.Column<string>(type: "text", nullable: false),
+                    role = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -69,7 +72,7 @@ namespace Argus.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "placement_history",
+                name: "placement_histories",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -81,23 +84,23 @@ namespace Argus.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_placement_history", x => x.id);
+                    table.PrimaryKey("pk_placement_histories", x => x.id);
                     table.ForeignKey(
-                        name: "fk_placement_history_auditorium_auditorium_id",
+                        name: "fk_placement_histories_auditoriums_auditorium_id",
                         column: x => x.auditorium_id,
-                        principalTable: "auditorium",
+                        principalTable: "auditoriums",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_placement_history_equipment_equipment_id",
+                        name: "fk_placement_histories_equipments_equipment_id",
                         column: x => x.equipment_id,
-                        principalTable: "equipment",
+                        principalTable: "equipments",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "support_request",
+                name: "support_requests",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -113,34 +116,34 @@ namespace Argus.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_support_request", x => x.id);
+                    table.PrimaryKey("pk_support_requests", x => x.id);
                     table.ForeignKey(
-                        name: "fk_support_request_auditorium_auditorium_id",
+                        name: "fk_support_requests_auditoriums_auditorium_id",
                         column: x => x.auditorium_id,
-                        principalTable: "auditorium",
+                        principalTable: "auditoriums",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_support_request_equipment_equipment_id",
+                        name: "fk_support_requests_equipments_equipment_id",
                         column: x => x.equipment_id,
-                        principalTable: "equipment",
+                        principalTable: "equipments",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_support_request_users_client_id",
+                        name: "fk_support_requests_users_client_id",
                         column: x => x.client_id,
                         principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_support_request_users_executor_id",
+                        name: "fk_support_requests_users_executor_id",
                         column: x => x.executor_id,
                         principalTable: "users",
                         principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "support_request_comment",
+                name: "support_request_comments",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -152,15 +155,15 @@ namespace Argus.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_support_request_comment", x => x.id);
+                    table.PrimaryKey("pk_support_request_comments", x => x.id);
                     table.ForeignKey(
-                        name: "fk_support_request_comment_support_request_support_request_id",
+                        name: "fk_support_request_comments_support_requests_support_request_id",
                         column: x => x.support_request_id,
-                        principalTable: "support_request",
+                        principalTable: "support_requests",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_support_request_comment_users_author_id",
+                        name: "fk_support_request_comments_users_author_id",
                         column: x => x.author_id,
                         principalTable: "users",
                         principalColumn: "id",
@@ -180,94 +183,106 @@ namespace Argus.Migrations
                     table.PrimaryKey("pk_support_request_component", x => new { x.support_request_id, x.component_id });
                     table.CheckConstraint("CK_Quantity_Positive", "quantity > 0");
                     table.ForeignKey(
-                        name: "fk_support_request_component_component_component_id",
+                        name: "fk_support_request_component_components_component_id",
                         column: x => x.component_id,
-                        principalTable: "component",
+                        principalTable: "components",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "fk_support_request_component_support_request_support_request_id",
+                        name: "fk_support_request_component_support_requests_support_request_",
                         column: x => x.support_request_id,
-                        principalTable: "support_request",
+                        principalTable: "support_requests",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_component_name",
-                table: "component",
+                name: "ix_components_name",
+                table: "components",
                 column: "name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_placement_history_auditorium_id",
-                table: "placement_history",
+                name: "ix_placement_histories_auditorium_id",
+                table: "placement_histories",
                 column: "auditorium_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_placement_history_equipment_id",
-                table: "placement_history",
+                name: "ix_placement_histories_equipment_id",
+                table: "placement_histories",
                 column: "equipment_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_support_request_auditorium_id",
-                table: "support_request",
-                column: "auditorium_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_support_request_client_id",
-                table: "support_request",
-                column: "client_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_support_request_equipment_id",
-                table: "support_request",
-                column: "equipment_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_support_request_executor_id",
-                table: "support_request",
-                column: "executor_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_support_request_comment_author_id",
-                table: "support_request_comment",
+                name: "ix_support_request_comments_author_id",
+                table: "support_request_comments",
                 column: "author_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_support_request_comment_support_request_id",
-                table: "support_request_comment",
+                name: "ix_support_request_comments_support_request_id",
+                table: "support_request_comments",
                 column: "support_request_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_support_request_component_component_id",
                 table: "support_request_component",
                 column: "component_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_support_requests_auditorium_id",
+                table: "support_requests",
+                column: "auditorium_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_support_requests_client_id",
+                table: "support_requests",
+                column: "client_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_support_requests_equipment_id",
+                table: "support_requests",
+                column: "equipment_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_support_requests_executor_id",
+                table: "support_requests",
+                column: "executor_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_users_email",
+                table: "users",
+                column: "email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_users_user_name",
+                table: "users",
+                column: "user_name",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "placement_history");
+                name: "placement_histories");
 
             migrationBuilder.DropTable(
-                name: "support_request_comment");
+                name: "support_request_comments");
 
             migrationBuilder.DropTable(
                 name: "support_request_component");
 
             migrationBuilder.DropTable(
-                name: "component");
+                name: "components");
 
             migrationBuilder.DropTable(
-                name: "support_request");
+                name: "support_requests");
 
             migrationBuilder.DropTable(
-                name: "auditorium");
+                name: "auditoriums");
 
             migrationBuilder.DropTable(
-                name: "equipment");
+                name: "equipments");
 
             migrationBuilder.DropTable(
                 name: "users");

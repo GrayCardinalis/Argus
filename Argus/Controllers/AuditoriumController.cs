@@ -1,6 +1,7 @@
 ﻿using Argus.Dtos.Auditoriums;
 using Argus.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Argus.Constants.RouteNames;
 
 namespace Argus.Controllers
 {
@@ -9,12 +10,14 @@ namespace Argus.Controllers
     [Route("api/[controller]")]
     public class AuditoriumController(IAuditoriumService auditoriumService) : ControllerBase
     {
-        [HttpGet]
+        [HttpGet(Name = AuditoriumRoutes.GetAllAuditoriums)]
         public async Task<ActionResult<List<AuditoriumDto>>> GetAllAuditoriums()
         {
-            return Ok(await auditoriumService.GetAllAuditoriumsAsync());
+            var auditoriums = await auditoriumService.GetAllAuditoriumsAsync();
+            return Ok(auditoriums);
         }
-        [HttpGet("{id}")]
+
+        [HttpGet("{id}", Name = AuditoriumRoutes.GetAuditoriumById)]
         public async Task<ActionResult<AuditoriumDto>> GetAuditoriumByIdAsync(Guid id)
         {
             var auditorium = await auditoriumService.GetAuditoriumByIdAsync(id);
@@ -27,7 +30,7 @@ namespace Argus.Controllers
         public async Task<ActionResult<AuditoriumDto>> CreateAuditoriumAsync([FromBody] CreateAuditoriumDto createdAuditoriumDto)
         {
             var createdAuditorium = await auditoriumService.CreateAuditoriumAsync(createdAuditoriumDto);
-            return CreatedAtAction(nameof(GetAuditoriumByIdAsync), new { id = createdAuditorium.Id }, createdAuditorium);
+            return CreatedAtRoute(AuditoriumRoutes.GetAuditoriumById, new { id = createdAuditorium.Id }, createdAuditorium);
         }
 
         [HttpDelete("{id}")]

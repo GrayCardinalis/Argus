@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Argus.Data;
 using Argus.Services;
 using Argus.Services.Interfaces;
@@ -18,13 +19,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IAuditoriumService, AuditoriumService>();
 builder.Services.AddScoped<IComponentService, ComponentService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).UseSnakeCaseNamingConvention());
 
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<AuditoriumMappingProfile>());
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ComponentMappingProfile>());
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile<UserMappingProfile>());
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 var app = builder.Build();
 

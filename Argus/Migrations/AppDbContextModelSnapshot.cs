@@ -40,9 +40,9 @@ namespace Argus.Migrations
                         .HasColumnName("room_number");
 
                     b.HasKey("Id")
-                        .HasName("pk_auditorium");
+                        .HasName("pk_auditoriums");
 
-                    b.ToTable("auditorium", (string)null);
+                    b.ToTable("auditoriums", (string)null);
                 });
 
             modelBuilder.Entity("Argus.Models.Component", b =>
@@ -64,13 +64,13 @@ namespace Argus.Migrations
                         .HasColumnName("quantity");
 
                     b.HasKey("Id")
-                        .HasName("pk_component");
+                        .HasName("pk_components");
 
                     b.HasIndex("Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_component_name");
+                        .HasDatabaseName("ix_components_name");
 
-                    b.ToTable("component", (string)null);
+                    b.ToTable("components", (string)null);
                 });
 
             modelBuilder.Entity("Argus.Models.Equipment", b =>
@@ -103,9 +103,9 @@ namespace Argus.Migrations
                         .HasColumnName("type");
 
                     b.HasKey("Id")
-                        .HasName("pk_equipment");
+                        .HasName("pk_equipments");
 
-                    b.ToTable("equipment", (string)null);
+                    b.ToTable("equipments", (string)null);
                 });
 
             modelBuilder.Entity("Argus.Models.PlacementHistory", b =>
@@ -134,15 +134,15 @@ namespace Argus.Migrations
                         .HasColumnName("removed_at");
 
                     b.HasKey("Id")
-                        .HasName("pk_placement_history");
+                        .HasName("pk_placement_histories");
 
                     b.HasIndex("AuditoriumId")
-                        .HasDatabaseName("ix_placement_history_auditorium_id");
+                        .HasDatabaseName("ix_placement_histories_auditorium_id");
 
                     b.HasIndex("EquipmentId")
-                        .HasDatabaseName("ix_placement_history_equipment_id");
+                        .HasDatabaseName("ix_placement_histories_equipment_id");
 
-                    b.ToTable("placement_history", (string)null);
+                    b.ToTable("placement_histories", (string)null);
                 });
 
             modelBuilder.Entity("Argus.Models.SupportRequest", b =>
@@ -191,21 +191,21 @@ namespace Argus.Migrations
                         .HasColumnName("title");
 
                     b.HasKey("Id")
-                        .HasName("pk_support_request");
+                        .HasName("pk_support_requests");
 
                     b.HasIndex("AuditoriumId")
-                        .HasDatabaseName("ix_support_request_auditorium_id");
+                        .HasDatabaseName("ix_support_requests_auditorium_id");
 
                     b.HasIndex("ClientId")
-                        .HasDatabaseName("ix_support_request_client_id");
+                        .HasDatabaseName("ix_support_requests_client_id");
 
                     b.HasIndex("EquipmentId")
-                        .HasDatabaseName("ix_support_request_equipment_id");
+                        .HasDatabaseName("ix_support_requests_equipment_id");
 
                     b.HasIndex("ExecutorId")
-                        .HasDatabaseName("ix_support_request_executor_id");
+                        .HasDatabaseName("ix_support_requests_executor_id");
 
-                    b.ToTable("support_request", (string)null);
+                    b.ToTable("support_requests", (string)null);
                 });
 
             modelBuilder.Entity("Argus.Models.SupportRequestComment", b =>
@@ -235,15 +235,15 @@ namespace Argus.Migrations
                         .HasColumnName("support_request_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_support_request_comment");
+                        .HasName("pk_support_request_comments");
 
                     b.HasIndex("AuthorId")
-                        .HasDatabaseName("ix_support_request_comment_author_id");
+                        .HasDatabaseName("ix_support_request_comments_author_id");
 
                     b.HasIndex("SupportRequestId")
-                        .HasDatabaseName("ix_support_request_comment_support_request_id");
+                        .HasDatabaseName("ix_support_request_comments_support_request_id");
 
-                    b.ToTable("support_request_comment", (string)null);
+                    b.ToTable("support_request_comments", (string)null);
                 });
 
             modelBuilder.Entity("Argus.Models.SupportRequestComponent", b =>
@@ -280,21 +280,49 @@ namespace Argus.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("Department")
-                        .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("department");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("email");
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("full_name");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("integer")
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("role");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("user_name");
 
                     b.HasKey("Id")
                         .HasName("pk_users");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("UserName")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_user_name");
 
                     b.ToTable("users", (string)null);
                 });
@@ -306,14 +334,14 @@ namespace Argus.Migrations
                         .HasForeignKey("AuditoriumId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_placement_history_auditorium_auditorium_id");
+                        .HasConstraintName("fk_placement_histories_auditoriums_auditorium_id");
 
                     b.HasOne("Argus.Models.Equipment", "Equipment")
                         .WithMany()
                         .HasForeignKey("EquipmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_placement_history_equipment_equipment_id");
+                        .HasConstraintName("fk_placement_histories_equipments_equipment_id");
 
                     b.Navigation("Auditorium");
 
@@ -327,26 +355,26 @@ namespace Argus.Migrations
                         .HasForeignKey("AuditoriumId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_support_request_auditorium_auditorium_id");
+                        .HasConstraintName("fk_support_requests_auditoriums_auditorium_id");
 
                     b.HasOne("Argus.Models.User", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_support_request_users_client_id");
+                        .HasConstraintName("fk_support_requests_users_client_id");
 
                     b.HasOne("Argus.Models.Equipment", "Equipment")
                         .WithMany()
                         .HasForeignKey("EquipmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_support_request_equipment_equipment_id");
+                        .HasConstraintName("fk_support_requests_equipments_equipment_id");
 
                     b.HasOne("Argus.Models.User", "Executor")
                         .WithMany()
                         .HasForeignKey("ExecutorId")
-                        .HasConstraintName("fk_support_request_users_executor_id");
+                        .HasConstraintName("fk_support_requests_users_executor_id");
 
                     b.Navigation("Auditorium");
 
@@ -364,14 +392,14 @@ namespace Argus.Migrations
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_support_request_comment_users_author_id");
+                        .HasConstraintName("fk_support_request_comments_users_author_id");
 
                     b.HasOne("Argus.Models.SupportRequest", "SupportRequest")
                         .WithMany()
                         .HasForeignKey("SupportRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_support_request_comment_support_request_support_request_id");
+                        .HasConstraintName("fk_support_request_comments_support_requests_support_request_id");
 
                     b.Navigation("Author");
 
@@ -385,14 +413,14 @@ namespace Argus.Migrations
                         .HasForeignKey("ComponentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_support_request_component_component_component_id");
+                        .HasConstraintName("fk_support_request_component_components_component_id");
 
                     b.HasOne("Argus.Models.SupportRequest", "SupportRequest")
                         .WithMany()
                         .HasForeignKey("SupportRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_support_request_component_support_request_support_request_id");
+                        .HasConstraintName("fk_support_request_component_support_requests_support_request_");
 
                     b.Navigation("Component");
 

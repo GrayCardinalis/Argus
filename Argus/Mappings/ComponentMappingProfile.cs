@@ -10,9 +10,8 @@ namespace Argus.Mappings
         {
             CreateMap<Component, ComponentDto>();
             CreateMap<CreateComponentDto, Component>();
-            CreateMap<UpdateComponentStockDto, Component>()
-                //Если в пришедшем DTO какое - то поле равно null, проигнорируй его и не перезаписывай им старое значение в базе данных
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)); 
+            CreateMap<UpdateComponentStockDto, Component>();
+            CreateMap<UpdateComponentNameDto, Component>();
         }
     }
 }

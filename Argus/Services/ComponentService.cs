@@ -12,15 +12,15 @@ namespace Argus.Services
     {
         public async Task<List<ComponentDto>> GetAllComponentAsync()
         {
-            return await context.Component
+            return await context.Components
                 .AsNoTracking()
                 .ProjectTo<ComponentDto>(mapper.ConfigurationProvider)
                 .ToListAsync();
         }
 
-        public async Task<ComponentDto?> GetComponent(Guid id)
+        public async Task<ComponentDto?> GetComponentByIdAsync(Guid id)
         {
-            return await context.Component
+            return await context.Components
                 .AsNoTracking()
                 .Where(c => c.Id == id)
                 .ProjectTo<ComponentDto?>(mapper.ConfigurationProvider)
@@ -33,7 +33,7 @@ namespace Argus.Services
         {
             var newComponent = mapper.Map<Component>(createComponentDto);
 
-            context.Component.Add(newComponent);
+            context.Components.Add(newComponent);
 
             await context.SaveChangesAsync();
 
@@ -41,7 +41,7 @@ namespace Argus.Services
         }
         public async Task<bool> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto updateComponentStockDto)
         {
-            var existingComponent = await context.Component.FindAsync(id);
+            var existingComponent = await context.Components.FindAsync(id);
             if (existingComponent is null)
                 return false;
 
@@ -49,9 +49,20 @@ namespace Argus.Services
             await context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto)
+        {
+            var existingComponent = await context.Components.FindAsync(id);
+            if (existingComponent is null)
+                return false;
+            mapper.Map(updateComponentNameDto, existingComponent);
+            await context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> DeleteComponentAsync(Guid id)
         {
-            var deleteComponent = await context.Component
+            var deleteComponent = await context.Components
                 .Where(c => c.Id == id)
                 .ExecuteDeleteAsync();
 

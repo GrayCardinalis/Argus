@@ -6,14 +6,22 @@ namespace Argus.Data
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public DbSet<User> Users { get; set; }
-        public DbSet<Auditorium> Auditorium { get; set; }
-        public DbSet<Component> Component { get; set; }
-        public DbSet<Equipment> Equipment { get; set; }
-        public DbSet<PlacementHistory> PlacementHistory { get; set; }
-        public DbSet<SupportRequest> SupportRequest { get; set; }
-        public DbSet<SupportRequestComment> SupportRequestComment { get; set; }
-        public DbSet<SupportRequestComponent> SupportRequestComponent { get; set; }
+        #region 1. Directories (Independent entities)
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Auditorium> Auditoriums => Set<Auditorium>();
+        public DbSet<Component> Components => Set<Component>();
+        public DbSet<Equipment> Equipments => Set<Equipment>();
+        #endregion
+
+        #region 2. Operational Tables (Dependent Entities)
+        public DbSet<PlacementHistory> PlacementHistories => Set<PlacementHistory>();
+        public DbSet<SupportRequest> SupportRequests => Set<SupportRequest>();
+        #endregion
+
+        #region 3.Intermediate tables and details (Join Tables)
+        public DbSet<SupportRequestComment> SupportRequestComments => Set<SupportRequestComment>();
+        public DbSet<SupportRequestComponent> SupportRequestComponent => Set<SupportRequestComponent>();
+        #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
