@@ -5,14 +5,16 @@ using Argus.Services.Interfaces;
 using Argus.Constants.Errors;
 using AutoMapper;
 using ErrorOr;
+using Argus.Enums;
 using BCrypt.Net;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Argus.Providers.Interfaces;
 
 namespace Argus.Services
 {
-    public class UserService(AppDbContext context, IMapper mapper) : IUserService
+    public class UserService(AppDbContext context, IMapper mapper, ICurrentUserProvider currentUser) : IUserService
     {
         public async Task<ErrorOr<List<UserDto>>> GetAllUsersAsync()
         {
@@ -96,18 +98,58 @@ namespace Argus.Services
             return Result.Success;
         }
 
-        public async Task<bool> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto)
+        //Не забудь добавить проврку прав доступа в UpdateUserProfileAsync, чтобы обычный пользователь не мог менять чужой профиль.
+        public async Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto)
         {
-            throw new NotImplementedException();
+
+            /*if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
+            {
+                return UserErrors.Forbidden;
+            }*/
+
+            var user = await context.Users.FindAsync(id);
+
+            if (user is null)
+                return UserErrors.NotFound;
+
+            mapper.Map(dto, user);
+
+            await context.SaveChangesAsync();
+
+            return Result.Success;
         }
 
-        public async Task<UserDto?> ValidateCredentialAsync(string userName, string password)
+        public async Task<ErrorOr<UserDto>> ValidateCredentialAsync(string userName, string password)
         {
-            throw new NotImplementedException();
+            var user = await context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserName == userName);
+
+            if (user is null)
+                return UserErrors.InvalidAuthentication;
+
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+
+            if (!isPasswordValid)
+                return UserErrors.InvalidAuthentication;
+
+            return mapper.Map<UserDto>(user);
         }
-        public async Task<bool> DeleteUserAsync(Guid id)
+        public async Task<ErrorOr<Success>> DeleteUserAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var user = await context.Users.FindAsync(id);
+
+            if(user is null)
+                return UserErrors.NotFound;
+
+            if(user.IsDeleted) 
+                return UserErrors.NotFound;
+
+            user.IsDeleted = true;
+
+            await context.SaveChangesAsync();
+
+            return Result.Success;
         }
     }
 }

@@ -52,12 +52,33 @@ namespace Argus.Controllers
                     new { id = user.Id }, user),
                 errors => Problem(errors));
         }
-        [HttpPatch("{id:guid}")]
+
+        [HttpPatch("{id:guid}/password")]
         public async Task<IActionResult> UpdateUserPasswordAsync(Guid id, [FromBody] UpdateUserPasswordDto dto)
         {
             var result = await userService.UpdateUserPasswordAsync(id, dto);
 
             // Используем .Match(). Успех превращаем в 204 NoContent, ошибки летят в наш базовый ApiController
+            return result.Match(
+                success => NoContent(),
+                errors => Problem(errors)
+            );
+        }
+
+        [HttpPatch("{id:guid}/profile")]
+        public async Task<IActionResult> UpdateUserProfileAsync(Guid id, [FromBody] UpdateUserProfileDto dto)
+        {
+            var result = await userService.UpdateUserProfileAsync(id, dto);
+            return result.Match(
+                success => NoContent(),
+                errors => Problem(errors)
+            );
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteUserAsync(Guid id)
+        {
+            var result = await userService.DeleteUserAsync(id);
             return result.Match(
                 success => NoContent(),
                 errors => Problem(errors)
