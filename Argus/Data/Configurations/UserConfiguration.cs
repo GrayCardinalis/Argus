@@ -22,13 +22,16 @@ namespace Argus.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
             builder.HasIndex(u => u.Email)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter($"\"{nameof(User.IsDeleted)}\" = false");
 
             builder.Property(u => u.UserName)
                 .IsRequired()
                 .HasMaxLength(100);
             builder.HasIndex (u => u.UserName)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter($"\"{nameof(User.IsDeleted)}\" = false");
+
 
             builder.Property(u => u.PasswordHash)
                 .IsRequired();
@@ -37,6 +40,11 @@ namespace Argus.Data.Configurations
                 .HasConversion<string>() // Store the enum as a string in the database
                 .HasMaxLength(50)
                 .IsRequired();
+
+            builder.HasQueryFilter(u => !u.IsDeleted); // Global query filter to exclude deleted users
+
+            builder.Property(u => u.IsDeleted)
+                .HasDefaultValue(false);
         }
     }
 }
