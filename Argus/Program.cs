@@ -1,10 +1,12 @@
-using System.Text.Json.Serialization;
 using Argus.Data;
+using Argus.Mappings;
+using Argus.Providers;
+using Argus.Providers.Interfaces;
 using Argus.Services;
 using Argus.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using Argus.Mappings;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IAuditoriumService, AuditoriumService>();
 builder.Services.AddScoped<IComponentService, ComponentService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICurrentUserProvider, FakeCurrentUserProvider>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")).UseSnakeCaseNamingConvention());

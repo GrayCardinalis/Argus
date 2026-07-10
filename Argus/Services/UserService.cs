@@ -25,7 +25,7 @@ namespace Argus.Services
 
             return users;
         }
-        public async Task<ErrorOr<UserDto?>> GetUserByIdAsync(Guid id)
+        public async Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id)
         {
             var user = await context.Users
                 .AsNoTracking()
@@ -38,7 +38,7 @@ namespace Argus.Services
 
             return user;
         }
-        public async Task<ErrorOr<UserDto?>> GetUserByNameAsync(string userName)
+        public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName)
         {
             var user = await context.Users
                 .AsNoTracking()
@@ -80,6 +80,9 @@ namespace Argus.Services
         }
         public async Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto)
         {
+            if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
+                return UserErrors.Forbidden;
+
             var user = await context.Users.FindAsync(id);
 
             if (user is null)
@@ -102,10 +105,8 @@ namespace Argus.Services
         public async Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto)
         {
 
-            /*if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
-            {
+            if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
-            }*/
 
             var user = await context.Users.FindAsync(id);
 
@@ -135,6 +136,7 @@ namespace Argus.Services
 
             return mapper.Map<UserDto>(user);
         }
+
         public async Task<ErrorOr<Success>> DeleteUserAsync(Guid id)
         {
             var user = await context.Users.FindAsync(id);
@@ -142,14 +144,22 @@ namespace Argus.Services
             if(user is null)
                 return UserErrors.NotFound;
 
-            if(user.IsDeleted) 
-                return UserErrors.NotFound;
+            context.Users.Remove(user);
 
-            user.IsDeleted = true;
-
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(); // При вызове этого метода сработает переопределенный метод
 
             return Result.Success;
         }
+
+
+        /*public async Task<ErrorOr<List<UserDto>>> GetDeletedUsersAsync()
+        {
+            var deletedUsers = await _context.Users
+                .IgnoreQueryFilters() // Взламываем глобальный фильтр!
+                .Where(u => u.IsDeleted == true) // Ищем только удаленных
+                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+            return deletedUsers;
+        }*/
     }
 }

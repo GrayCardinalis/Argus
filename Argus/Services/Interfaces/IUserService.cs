@@ -7,8 +7,8 @@ namespace Argus.Services.Interfaces
     public interface IUserService
     {
         Task<ErrorOr<List<UserDto>>> GetAllUsersAsync();
-        Task<ErrorOr<UserDto?>> GetUserByIdAsync(Guid id);
-        Task<ErrorOr<UserDto?>> GetUserByNameAsync(string userName);
+        Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id);
+        Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName);
         // 2. Authentication (For future login)
         Task<ErrorOr<UserDto>> ValidateCredentialAsync(string userName, string password);
         Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto);
@@ -16,5 +16,6 @@ namespace Argus.Services.Interfaces
         Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto);
         //Deletion, change to deactivation in the future
         Task<ErrorOr<Success>> DeleteUserAsync(Guid id);
+        /*Task<ErrorOr<List<UserDto>>> GetDeletedUsersAsync();*/
     }
 }
