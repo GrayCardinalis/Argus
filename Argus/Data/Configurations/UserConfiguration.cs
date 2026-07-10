@@ -1,4 +1,5 @@
-﻿using Argus.Models;
+﻿using Argus.Constants.Database;
+using Argus.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -23,14 +24,14 @@ namespace Argus.Data.Configurations
                 .HasMaxLength(100);
             builder.HasIndex(u => u.Email)
                 .IsUnique()
-                .HasFilter($"\"{nameof(User.IsDeleted)}\" = false");
+                .HasFilter(DatabaseFilters.NotDeleted);
 
             builder.Property(u => u.UserName)
                 .IsRequired()
                 .HasMaxLength(100);
             builder.HasIndex (u => u.UserName)
                 .IsUnique()
-                .HasFilter($"\"{nameof(User.IsDeleted)}\" = false");
+                .HasFilter(DatabaseFilters.NotDeleted);
 
 
             builder.Property(u => u.PasswordHash)

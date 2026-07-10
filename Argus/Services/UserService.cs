@@ -139,6 +139,9 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> DeleteUserAsync(Guid id)
         {
+            if (currentUser.Role != UserRole.Admin)
+                return UserErrors.Forbidden;
+
             var user = await context.Users.FindAsync(id);
 
             if(user is null)
