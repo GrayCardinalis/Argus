@@ -6,16 +6,16 @@ namespace Argus.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<ErrorOr<List<UserDto>>> GetAllUsersAsync();
-        Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id);
-        Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName);
+        Task<ErrorOr<List<UserDto>>> GetAllUsersAsync(int page, int pageSize, CancellationToken cancellationToken = default);
+        Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken cancellationToken = default);
         // 2. Authentication (For future login)
-        Task<ErrorOr<UserDto>> ValidateCredentialAsync(string userName, string password);
-        Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto);
-        Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto);
-        Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto);
+        Task<ErrorOr<UserDto>> ValidateCredentialAsync(string userName, string password, CancellationToken cancellationToken = default);
+        Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default);
+        Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken cancellationToken = default);
+        Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto, CancellationToken cancellationToken = default);
         //Deletion, change to deactivation in the future
-        Task<ErrorOr<Success>> DeleteUserAsync(Guid id);
+        Task<ErrorOr<Success>> DeleteUserAsync(Guid id, CancellationToken cancellationToken = default);
         /*Task<ErrorOr<List<UserDto>>> GetDeletedUsersAsync();*/
     }
 }

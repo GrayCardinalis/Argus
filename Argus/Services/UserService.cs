@@ -16,46 +16,46 @@ namespace Argus.Services
 {
     public class UserService(AppDbContext context, IMapper mapper, ICurrentUserProvider currentUser) : IUserService
     {
-        public async Task<ErrorOr<List<UserDto>>> GetAllUsersAsync()
+        public async Task<ErrorOr<List<UserDto>>> GetAllUsersAsync( CancellationToken cancellationToken = default)
         {
             var users = await context.Users
                 .AsNoTracking() 
                 .ProjectTo<UserDto>(mapper.ConfigurationProvider)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return users;
         }
-        public async Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id)
+        public async Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var user = await context.Users
                 .AsNoTracking()
                 .Where(u => u.Id == id)
                 .ProjectTo<UserDto?>(mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (user == null)
                 return UserErrors.NotFound;
 
             return user;
         }
-        public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName)
+        public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken cancellationToken = default)
         {
             var user = await context.Users
                 .AsNoTracking()
                 .Where(u => u.UserName == userName)
                 .ProjectTo<UserDto?>(mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
             
             if (user == null) 
                 return UserErrors.NotFound;
 
             return user;
         }
-        public async Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto)
+        public async Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
         {
             var isUserExists = await context.Users
                 //Protection from dublicates. Check if the UserName or Name is busy
-                .AnyAsync(u=>u.UserName == dto.UserName || u.Email == dto.Email);
+                .AnyAsync(u=>u.UserName == dto.UserName || u.Email == dto.Email, cancellationToken);
 
             if (isUserExists)
                 return UserErrors.AlreadyExists;
@@ -73,17 +73,17 @@ namespace Argus.Services
             //Saving to the Database
             context.Users.Add(newUser);
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
 
             //Result
             return mapper.Map<UserDto>(newUser);
         }
-        public async Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto)
+        public async Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto, CancellationToken cancellationToken = default)
         {
             if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
-            var user = await context.Users.FindAsync(id);
+            var user = await context.Users.FindAsync(id, cancellationToken);
 
             if (user is null)
                 return UserErrors.NotFound;
@@ -96,35 +96,45 @@ namespace Argus.Services
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
 
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(cancellationToken);
 
             return Result.Success;
         }
 
-        //Не забудь добавить проврку прав доступа в UpdateUserProfileAsync, чтобы обычный пользователь не мог менять чужой профиль.
-        public async Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto)
+        public async Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken cancellationToken = default)
         {
-
             if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
-            var user = await context.Users.FindAsync(id);
-
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
             if (user is null)
                 return UserErrors.NotFound;
 
-            mapper.Map(dto, user);
+            var conflictingUser = await context.Users
+                .Where(u => u.Id != id && (u.UserName == dto.UserName || u.Email == dto.Email))
+                .Select(u => new { u.UserName, u.Email })
+                .FirstOrDefaultAsync(cancellationToken);
 
-            await context.SaveChangesAsync();
+            if (conflictingUser is not null)
+            {
+                if (conflictingUser.UserName == dto.UserName)
+                    return UserErrors.DuplicateUserName;
+
+                if (conflictingUser.Email == dto.Email)
+                    return UserErrors.DuplicateEmail;
+            }
+
+            mapper.Map(dto, user);
+            await context.SaveChangesAsync(cancellationToken);
 
             return Result.Success;
         }
 
-        public async Task<ErrorOr<UserDto>> ValidateCredentialAsync(string userName, string password)
+        public async Task<ErrorOr<UserDto>> ValidateCredentialAsync(string userName, string password, CancellationToken cancellationToken = default)
         {
             var user = await context.Users
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.UserName == userName);
+                .FirstOrDefaultAsync(u => u.UserName == userName, cancellationToken);
 
             if (user is null)
                 return UserErrors.InvalidAuthentication;
@@ -137,19 +147,22 @@ namespace Argus.Services
             return mapper.Map<UserDto>(user);
         }
 
-        public async Task<ErrorOr<Success>> DeleteUserAsync(Guid id)
+        public async Task<ErrorOr<Success>> DeleteUserAsync(Guid id, CancellationToken cancellationToken = default)
         {
             if (currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
-            var user = await context.Users.FindAsync(id);
+            if (id == currentUser.UserId) 
+                return UserErrors.CannotDeleteSelf;
+
+            var user = await context.Users.FindAsync(id, cancellationToken);
 
             if(user is null)
                 return UserErrors.NotFound;
 
             context.Users.Remove(user);
 
-            await context.SaveChangesAsync(); // При вызове этого метода сработает переопределенный метод
+            await context.SaveChangesAsync(cancellationToken); // При вызове этого метода сработает переопределенный метод
 
             return Result.Success;
         }

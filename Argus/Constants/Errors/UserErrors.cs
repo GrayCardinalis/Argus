@@ -36,7 +36,25 @@ namespace Argus.Constants.Errors
             Error.Validation(
                 code: "User.WrongCurrentPassword",
                 description: "The current password is incorrect.");
-        
+
+        //status 409
+        public static readonly Error DuplicateEmail =
+            Error.Conflict(
+                code: "User.DuplicateEmail",
+                description: "This email is already in use.");
+
+        //status 409
+        public static readonly Error DuplicateUserName =
+            Error.Conflict(
+                code: "User.DuplicateUserName",
+                description: "This username is already taken.");
+
+        //status 400
+        public static readonly Error CannotDeleteSelf =
+            Error.Validation(
+                code: "User.CannotDeleteSelf",
+                description: "Administrators cannot delete their own account.");
+
         //status 403
         public static readonly Error Forbidden = 
             Error.Forbidden(
