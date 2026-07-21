@@ -16,7 +16,7 @@ namespace Argus.Services
 {
     public class UserService(AppDbContext context, IMapper mapper, ICurrentUserProvider currentUser) : IUserService
     {
-        public async Task<ErrorOr<List<UserDto>>> GetAllUsersAsync( CancellationToken cancellationToken = default)
+        public async Task<ErrorOr<List<UserDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default)
         {
             var users = await context.Users
                 .AsNoTracking() 
@@ -36,7 +36,7 @@ namespace Argus.Services
             if (user == null)
                 return UserErrors.NotFound;
 
-            return user;
+            return user; 
         }
         public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken cancellationToken = default)
         {
@@ -155,7 +155,7 @@ namespace Argus.Services
             if (id == currentUser.UserId) 
                 return UserErrors.CannotDeleteSelf;
 
-            var user = await context.Users.FindAsync(id, cancellationToken);
+            var user = await context.Users.FirstOrDefaultAsync(u=>u.Id == id, cancellationToken);
 
             if(user is null)
                 return UserErrors.NotFound;

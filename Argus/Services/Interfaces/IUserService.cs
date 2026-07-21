@@ -6,7 +6,7 @@ namespace Argus.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<ErrorOr<List<UserDto>>> GetAllUsersAsync(int page, int pageSize, CancellationToken cancellationToken = default);
+        Task<ErrorOr<List<UserDto>>> GetAllUsersAsync(CancellationToken cancellationToken = default);
         Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken cancellationToken = default);
         // 2. Authentication (For future login)
