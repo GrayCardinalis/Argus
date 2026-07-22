@@ -6,6 +6,7 @@ using Argus.Services;
 using Argus.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +18,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .UseSnakeCaseNamingConvention());
+     .UseSnakeCaseNamingConvention());
 
 builder.Services.AddScoped<IAuditoriumService, AuditoriumService>();
 builder.Services.AddScoped<IComponentService, ComponentService>();

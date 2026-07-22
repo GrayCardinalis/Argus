@@ -8,6 +8,5 @@ namespace Argus.Dtos.Users
         public required string UserName { get; set;} = string.Empty;
         public string? Department { get; set; }
         public required string Email { get; set;} = string.Empty;
-        public required UserRole Role { get; set; }
     }
 }
