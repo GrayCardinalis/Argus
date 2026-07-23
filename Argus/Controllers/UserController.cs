@@ -54,7 +54,7 @@ namespace Argus.Controllers
         }
 
         [HttpPatch("{id:guid}/password")]
-        public async Task<IActionResult> UpdateUserPasswordAsync(Guid id, [FromBody] UpdateUserPasswordDto dto, CancellationToken ct)
+        public async Task<IActionResult> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto, CancellationToken ct)
         {
             var result = await userService.UpdateUserPasswordAsync(id, dto, ct);
 
@@ -66,7 +66,7 @@ namespace Argus.Controllers
         }
 
         [HttpPatch("{id:guid}/profile")]
-        public async Task<IActionResult> UpdateUserProfileAsync(Guid id, [FromBody] UpdateUserProfileDto dto, CancellationToken ct)
+        public async Task<IActionResult> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken ct)
         {
             var result = await userService.UpdateUserProfileAsync(id, dto,ct);
             return result.Match(
