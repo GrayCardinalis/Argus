@@ -19,9 +19,9 @@ namespace Argus.Data.Configurations
             builder.HasIndex(c => c.Name)
                 .IsUnique();
 
-            builder.Property(c=>c.Quantity)
-                .IsRequired()
-                .HasMaxLength(1000);
+            builder.Property(c => c.Quantity)
+                .IsRequired();
+                //.HasMaxLength(1000);
 
         }
     }

@@ -24,14 +24,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
     .UseSnakeCaseNamingConvention());
 
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<AuditoriumMappingProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<ComponentMappingProfile>());
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<UserMappingProfile>());
+builder.Services.AddAutoMapper(cfg =>
+{ 
+    cfg.AddProfile<AuditoriumMappingProfile>();
+    cfg.AddProfile<ComponentMappingProfile>();
+    cfg.AddProfile<UserMappingProfile>();
+});
 
 builder.Services.AddExceptionHandler<UniqueConstraintExceptionHandler>();
-
 builder.Services.AddProblemDetails();
-
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

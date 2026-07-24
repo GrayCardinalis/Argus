@@ -139,12 +139,11 @@ namespace Argus.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserName == userName, ct);
 
-            if (user is null)
-                return UserErrors.InvalidAuthentication;
+            var hash = user?.PasswordHash ?? DummyHash;
 
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            bool isValid = BCrypt.Net.BCrypt.Verify(password, hash);
 
-            if (!isPasswordValid)
+            if (!isValid || user is null)
                 return UserErrors.InvalidAuthentication;
 
             return mapper.Map<UserDto>(user);
