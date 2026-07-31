@@ -11,6 +11,7 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Argus.Providers.Interfaces;
+using Argus.Constants.Security;
 
 namespace Argus.Services
 {
@@ -65,7 +66,7 @@ namespace Argus.Services
             newUser.Role = UserRole.Client;
 
             //Password Hashing(BCrypt Magic)
-            newUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            newUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password, AuthConstants.WorkFactor);
 
             newUser.Department = string.IsNullOrWhiteSpace(dto.Department)
                 ? "Отдел не указан"
@@ -96,7 +97,7 @@ namespace Argus.Services
             if (!isPasswordValid)
                 return UserErrors.WrongCurrentPassword;
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword, AuthConstants.WorkFactor);
 
 
             await context.SaveChangesAsync(ct);
@@ -139,7 +140,10 @@ namespace Argus.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserName == userName, ct);
 
-            var hash = user?.PasswordHash ?? DummyHash;
+            // If user == null, we take DummyHash with Work Factor 11 ps. In the future, add generation at startup
+            var hash = string.IsNullOrWhiteSpace(user?.PasswordHash)
+                ? AuthConstants.DummyHash 
+                : user?.PasswordHash;
 
             bool isValid = BCrypt.Net.BCrypt.Verify(password, hash);
 
