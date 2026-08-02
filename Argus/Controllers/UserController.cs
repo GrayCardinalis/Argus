@@ -38,7 +38,6 @@ namespace Argus.Controllers
             return result.Match<ActionResult<UserDto>>(
                 user => Ok(user),
                 errors => Problem(errors));
-            //return Ok(user);
         }
 
         [HttpPost]

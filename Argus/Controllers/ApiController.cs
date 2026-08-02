@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Argus.Controllers
 {
-    [ApiController]
+
     // Все общие атрибуты (типа [ApiController]) переезжают сюда
+    [ApiController]
     public abstract class ApiController : ControllerBase
     {
         protected ActionResult Problem(List<Error> errors)

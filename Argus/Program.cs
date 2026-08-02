@@ -32,7 +32,9 @@ builder.Services.AddAutoMapper(cfg =>
 });
 
 builder.Services.AddExceptionHandler<UniqueConstraintExceptionHandler>();
+
 builder.Services.AddProblemDetails();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -51,6 +53,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 
