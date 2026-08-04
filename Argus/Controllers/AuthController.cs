@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Argus.Dtos.Authorization;
 using ErrorOr;
 using Argus.Dtos.Users;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Argus.Controllers
 {
-    [ApiController]
+    [EnableRateLimiting("login")]
     [Route("api/auth")]
     public class AuthController(IUserService userService) : ApiController
     {

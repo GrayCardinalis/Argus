@@ -30,8 +30,8 @@ namespace Argus.Infrastructure
                 {
                     Status = StatusCodes.Status409Conflict,
                     Title = "Conflict",
-                    Detail = "A record with the specified unique key already exists",
-                    Type = "https://tools.ietf.org/html/rfc7231#section-6.5.8"
+                    Detail = "A record with the specified unique key already exists.",
+                    Type = "https://tools.ietf.org/html/rfc9110#section-15.5.10"
                 }
             });
         }

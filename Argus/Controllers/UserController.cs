@@ -9,7 +9,6 @@ using ErrorOr;
 
 namespace Argus.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
     public class UserController(IUserService userService) : ApiController
     {
