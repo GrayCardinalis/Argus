@@ -107,6 +107,9 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken ct = default)
         {
+            if (currentUser.UserId == null)
+                return UserErrors.Unauthorized;
+
             if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
