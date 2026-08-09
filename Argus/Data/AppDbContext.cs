@@ -53,11 +53,10 @@ namespace Argus.Data
 
                     entry.Entity.DeletedAt = DateTime.UtcNow;
 
-                    entry.Entity.DeletedBy = currentUser?.UserId;
+                    entry.Entity.DeletedBy = currentUser.UserId;
                 }
             }
             return await base.SaveChangesAsync(cancellationToken);
         }
-
     }
 }

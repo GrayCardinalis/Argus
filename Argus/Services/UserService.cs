@@ -82,6 +82,9 @@ namespace Argus.Services
         }
         public async Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto, CancellationToken ct = default)
         {
+            if(currentUser.UserId == null)
+                return UserErrors.Unauthorized;
+
             if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
@@ -158,6 +161,9 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> DeleteUserAsync(Guid id, CancellationToken ct = default)
         {
+            if (currentUser.UserId == null)
+                return UserErrors.Unauthorized;
+
             if (currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
