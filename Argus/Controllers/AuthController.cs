@@ -13,10 +13,10 @@ namespace Argus.Controllers
     public class AuthController(IUserService userService) : ApiController
     {
         [HttpPost("login", Name = AuthRoutes.Login)]
-        public async Task<ActionResult<UserDto>> LoginAsync(LoginRequestDto dto, CancellationToken ct)
+        public async Task<ActionResult<LoginResponseDto>> LoginAsync(LoginRequestDto dto, CancellationToken ct)
         {
-            var result = await userService.ValidateCredentialAsync(dto.UserName, dto.Password, ct);
-            return result.Match<ActionResult<UserDto>>(
+            var result = await userService.LoginAsync(dto.UserName, dto.Password, ct);
+            return result.Match<ActionResult<LoginResponseDto>>(
                 success => Ok(success),
                 errors => Problem(errors)
             );

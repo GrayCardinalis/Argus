@@ -1,15 +1,14 @@
 using Argus.Data;
 using Argus.Infrastructure;
 using Argus.Mappings;
+using Argus.Options;
 using Argus.Providers;
 using Argus.Providers.Interfaces;
 using Argus.Services;
 using Argus.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -23,6 +22,7 @@ builder.Services.AddScoped<IAuditoriumService, AuditoriumService>();
 builder.Services.AddScoped<IComponentService, ComponentService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICurrentUserProvider, FakeCurrentUserProvider>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -82,6 +82,11 @@ builder.Services.AddRateLimiter(limiterOptions =>
     };
 });
 
+builder.Services.AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart(); //переносит проверку на момент запуска. По умолчанию валидация ленивая — срабатывает при первом обращении к IOptions<JwtOptions>.Value.
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
@@ -98,6 +103,8 @@ app.UseRouting();
 app.UseRateLimiter();
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

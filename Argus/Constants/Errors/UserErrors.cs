@@ -62,9 +62,9 @@ namespace Argus.Constants.Errors
                 description: "You do not have permission to perform this action.");
 
         // status 401
-        public static readonly Error Unauthorized =
+        public static readonly Error NotAuthenticated =
             Error.Unauthorized(
-                code: "User.Unauthorized",
+                code: "User.NotAuthenticated",
                 description: "Authentication is required to access this resource.");
     }
 }
