@@ -1,4 +1,5 @@
-﻿using Argus.Models;
+﻿using Argus.Constants.Database;
+using Argus.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,13 +23,16 @@ namespace Argus.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
             builder.HasIndex(u => u.Email)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter(DatabaseFilters.NotDeleted);
 
             builder.Property(u => u.UserName)
                 .IsRequired()
                 .HasMaxLength(100);
             builder.HasIndex (u => u.UserName)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter(DatabaseFilters.NotDeleted);
+
 
             builder.Property(u => u.PasswordHash)
                 .IsRequired();
@@ -37,6 +41,17 @@ namespace Argus.Data.Configurations
                 .HasConversion<string>() // Store the enum as a string in the database
                 .HasMaxLength(50)
                 .IsRequired();
+
+            builder.HasQueryFilter(u => !u.IsDeleted); // Global query filter to exclude deleted users
+
+            builder.Property(u => u.IsDeleted)
+                .HasDefaultValue(false);
+
+            builder.Property(u => u.DeletedAt)
+                .IsRequired(false);
+
+            builder.Property(u => u.DeletedBy)
+                .IsRequired(false);
         }
     }
 }

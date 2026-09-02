@@ -4,8 +4,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Argus.Controllers
 {
-    [ApiController]
+
     // Все общие атрибуты (типа [ApiController]) переезжают сюда
+    [ApiController]
     public abstract class ApiController : ControllerBase
     {
         protected ActionResult Problem(List<Error> errors)
@@ -27,8 +28,9 @@ namespace Argus.Controllers
             {
                 ErrorType.Conflict => StatusCodes.Status409Conflict,
                 ErrorType.NotFound => StatusCodes.Status404NotFound,
-                ErrorType.Validation => StatusCodes.Status400BadRequest,
+                ErrorType.Forbidden => StatusCodes.Status403Forbidden,
                 ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+                ErrorType.Validation => StatusCodes.Status400BadRequest,
                 _ => StatusCodes.Status500InternalServerError
             };
 

@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Argus.Models;
 using System.Reflection;
+using Argus.Providers.Interfaces;
+using Argus.Models.Interfaces;
 
 namespace Argus.Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserProvider currentUser) : DbContext(options)
     {
         #region 1. Directories (Independent entities)
         public DbSet<User> Users => Set<User>();
@@ -38,6 +40,23 @@ namespace Argus.Data
                     property.SetColumnType("timestamp with time zone");
                 }
             }
+        }
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            foreach (var entry in ChangeTracker.Entries<ISoftDeletable>())
+            {
+                if(entry.State == EntityState.Deleted)
+                {
+                    entry.State = EntityState.Modified;
+
+                    entry.Entity.IsDeleted = true;
+
+                    entry.Entity.DeletedAt = DateTime.UtcNow;
+
+                    entry.Entity.DeletedBy = currentUser.UserId;
+                }
+            }
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }
