@@ -5,13 +5,16 @@ using Argus.Dtos.Authorization;
 using ErrorOr;
 using Argus.Dtos.Users;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Argus.Controllers
 {
+
     [EnableRateLimiting("login")]
     [Route("api/auth")]
     public class AuthController(IUserService userService) : ApiController
     {
+        [AllowAnonymous]
         [HttpPost("login", Name = AuthRoutes.Login)]
         public async Task<ActionResult<LoginResponseDto>> LoginAsync(LoginRequestDto dto, CancellationToken ct)
         {
@@ -22,4 +25,4 @@ namespace Argus.Controllers
             );
         }
     }
-}
+} 
