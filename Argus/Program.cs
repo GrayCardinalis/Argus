@@ -16,6 +16,7 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
+using Argus.Constants.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,7 +52,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddRateLimiter(limiterOptions =>
 {
-    limiterOptions.AddPolicy("login", httpContext =>
+    limiterOptions.AddPolicy(RateLimitPolicies.Auth, httpContext =>
     RateLimitPartition.GetFixedWindowLimiter(
         partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         factory: _ => new FixedWindowRateLimiterOptions
@@ -171,3 +172,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+//test del1
+//test del2

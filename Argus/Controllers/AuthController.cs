@@ -1,5 +1,6 @@
 ﻿using Argus.Services.Interfaces;
 using Argus.Constants.RouteNames;
+using Argus.Constants.Security;
 using Microsoft.AspNetCore.Mvc;
 using Argus.Dtos.Authorization;
 using ErrorOr;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Argus.Controllers
 {
 
-    [EnableRateLimiting("login")]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     [Route("api/auth")]
     public class AuthController(IUserService userService) : ApiController
     {

@@ -13,7 +13,7 @@ namespace Argus.Options
         [Required]
         public string Audience { get; set; } = string.Empty;
         //[Required] Общее правило: [Required] осмыслен только для ссылочных типов и Nullable<T>. Для типа-значения его роль выполняет проверка диапазона, отсекающая значение по умолчанию.
-        [Range(1, 60)]
+        [Range(1, 15)]
         public int AccessTokenLifetimeInMinutes { get; set; }
     }
 }
