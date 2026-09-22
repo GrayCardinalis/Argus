@@ -1,11 +1,14 @@
-﻿using Argus.Dtos.Components;
+﻿using Argus.Constants.Errors;
+using Argus.Constants.RouteNames;
+using Argus.Constants.Security;
+using Argus.Dtos.Components;
 using Argus.Dtos.Users;
 using Argus.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Argus.Constants.RouteNames;
-using NpgsqlTypes;
-using Argus.Constants.Errors;
 using ErrorOr;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using NpgsqlTypes;
 
 namespace Argus.Controllers
 {
@@ -38,7 +41,8 @@ namespace Argus.Controllers
                 user => Ok(user),
                 errors => Problem(errors));
         }
-
+        [AllowAnonymous]
+        [EnableRateLimiting(RateLimitPolicies.Auth)]
         [HttpPost]
         public async Task<ActionResult<UserDto>> CreateUserAsync(CreateUserDto dto, CancellationToken ct)
         {
