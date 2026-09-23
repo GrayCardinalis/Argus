@@ -25,13 +25,9 @@ namespace Argus.Controllers
             return component is null
                 ? NotFound($"Component with id {id} not found.")
                 : Ok(component);
-            //Равно следующему коду:
-            /*if (component is null)
-                return NotFound($"Component with id {id} not found.");
-                return Ok(component);*/
         }
 
-
+        [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPost]
         public async Task<ActionResult<ComponentDto>> CreateComponentAsync([FromBody] CreateComponentDto createComponentDto)
         {
@@ -41,6 +37,7 @@ namespace Argus.Controllers
         }
 
         // SCENARIO 1: Full editing of the product card (Admin)
+        [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPut("{id:guid}/name")]
         public async Task<IActionResult> UpdateComponentNameAsync(Guid id, [FromBody] UpdateComponentNameDto dto)
         {
@@ -49,6 +46,7 @@ namespace Argus.Controllers
         }
 
         // SCENARIO 2: Rapid change in inventory levels
+        [Authorize(Roles = nameof(UserRole.Admin) + "," + nameof(UserRole.Technician))]
         [HttpPut("{id:guid}/stock")]
         public async Task<IActionResult> UpdateComponentStockAsync(Guid id, [FromBody] UpdateComponentStockDto dto)
         {
@@ -56,6 +54,7 @@ namespace Argus.Controllers
             return isUpdated ? NoContent() : NotFound($"Component with id {id} not found.");
         }
 
+        [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComponent(Guid id)
         {

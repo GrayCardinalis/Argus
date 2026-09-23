@@ -6,15 +6,10 @@ using Argus.Constants.Errors;
 using AutoMapper;
 using ErrorOr;
 using Argus.Enums;
-using BCrypt.Net;
 using AutoMapper.QueryableExtensions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Argus.Providers.Interfaces;
 using Argus.Constants.Security;
-using System.Text;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
 using Argus.Dtos.Authorization;
 
 namespace Argus.Services
@@ -30,6 +25,19 @@ namespace Argus.Services
 
             return users;
         }
+        public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken ct = default)
+        {
+            var user = await context.Users
+                .AsNoTracking()
+                .Where(u => u.UserName == userName)
+                .ProjectTo<UserDto?>(mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(ct);
+
+            if (user == null)
+                return UserErrors.NotFound;
+
+            return user;
+        }
         public async Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id, CancellationToken ct = default)
         {
             var user = await context.Users
@@ -43,19 +51,7 @@ namespace Argus.Services
 
             return user; 
         }
-        public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken ct = default)
-        {
-            var user = await context.Users
-                .AsNoTracking()
-                .Where(u => u.UserName == userName)
-                .ProjectTo<UserDto?>(mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync(ct);
-            
-            if (user == null) 
-                return UserErrors.NotFound;
 
-            return user;
-        }
         public async Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto, CancellationToken ct = default)
         {
             if (dto.Password != dto.ConfirmPassword)
@@ -90,16 +86,8 @@ namespace Argus.Services
         public async Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto, CancellationToken ct = default)
         {
             // NotFound is possible if the user has been deleted (IsDeleted), but their JWT token has not yet expired.
-
-            if (currentUser.UserId == null)
-                return UserErrors.NotAuthenticated;
-
-            // NotFound возможен, если юзер удален (IsDeleted), но его JWT-токен еще не истек.
             if (id != currentUser.UserId)
                 return UserErrors.Forbidden;
-
-            if (dto.NewPassword != dto.ConfirmNewPassword)
-                return UserErrors.InvalidPassword;
 
             var user = await context.Users
                 .Where(u=>u.Id == id)
@@ -123,9 +111,6 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken ct = default)
         {
-            if (currentUser.UserId == null)
-                return UserErrors.NotAuthenticated;
-
             if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
@@ -159,9 +144,6 @@ namespace Argus.Services
             if (currentUser.UserId == null)
                 return UserErrors.NotAuthenticated;
 
-            if (currentUser.Role != UserRole.Admin)
-                return UserErrors.Forbidden;
-
             if (id == currentUser.UserId) 
                 return UserErrors.CannotDeleteSelf;
 
@@ -172,7 +154,7 @@ namespace Argus.Services
 
             context.Users.Remove(user);
 
-            await context.SaveChangesAsync(ct); // При вызове этого метода сработает переопределенный метод
+            await context.SaveChangesAsync(ct); // When this method is called, the overridden method will be executed.
 
             return Result.Success;
         }
@@ -202,15 +184,5 @@ namespace Argus.Services
                 User = userDto
             };
         }
-
-            /*public async Task<ErrorOr<List<UserDto>>> GetDeletedUsersAsync()
-            {
-                var deletedUsers = await _context.Users
-                    .IgnoreQueryFilters() // Взламываем глобальный фильтр!
-                    .Where(u => u.IsDeleted == true) // Ищем только удаленных
-                    .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync();
-                return deletedUsers;
-            }*/
-        }
+    }
 }

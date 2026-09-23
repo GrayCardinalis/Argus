@@ -1,4 +1,3 @@
-using System.Text;
 using Argus.Data;
 using Argus.Infrastructure;
 using Argus.Mappings;
@@ -175,6 +174,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-//test del1
-//test del2

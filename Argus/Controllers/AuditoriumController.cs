@@ -28,6 +28,7 @@ namespace Argus.Controllers
                 : Ok(auditorium);
         }
 
+        [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPost]
         public async Task<ActionResult<AuditoriumDto>> CreateAuditoriumAsync([FromBody] CreateAuditoriumDto createdAuditoriumDto)
         {
@@ -35,6 +36,7 @@ namespace Argus.Controllers
             return CreatedAtRoute(AuditoriumRoutes.GetAuditoriumById, new { id = createdAuditorium.Id }, createdAuditorium);
         }
 
+        [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAuditorium(Guid id)
         {
