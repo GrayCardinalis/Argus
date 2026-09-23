@@ -93,7 +93,7 @@ builder.Services.AddRateLimiter(limiterOptions =>
 builder.Services.AddOptions<JwtOptions>()
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
     .ValidateDataAnnotations()
-    .ValidateOnStart(); //переносит проверку на момент запуска. По умолчанию валидация ленивая — срабатывает при первом обращении к IOptions<JwtOptions>.Value.
+    .ValidateOnStart(); //moves the check to the moment of launch. By default, validation is lazy — it is triggered on the first access to IOptions<JwtOptions>.Value.
 
 builder.Services.AddHttpContextAccessor();
 

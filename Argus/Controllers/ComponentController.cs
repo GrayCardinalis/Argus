@@ -2,6 +2,8 @@
 using Argus.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Argus.Constants.RouteNames;
+using Microsoft.AspNetCore.Authorization;
+using Argus.Enums;
 
 namespace Argus.Controllers
 {
@@ -38,7 +40,7 @@ namespace Argus.Controllers
             return CreatedAtRoute(ComponentRoutes.GetComponentById, new {id = createdComponent.Id}, createdComponent);
         }
 
-        // СЦЕНАРИЙ 1: Полное редактирование карточки товара (Admin)
+        // SCENARIO 1: Full editing of the product card (Admin)
         [HttpPut("{id:guid}/name")]
         public async Task<IActionResult> UpdateComponentNameAsync(Guid id, [FromBody] UpdateComponentNameDto dto)
         {
@@ -46,7 +48,7 @@ namespace Argus.Controllers
             return isUpdated ? NoContent() : NotFound($"Component with id {id} not found.");
         }
 
-        // СЦЕНАРИЙ 2: Быстрое изменение остатков на складе
+        // SCENARIO 2: Rapid change in inventory levels
         [HttpPut("{id:guid}/stock")]
         public async Task<IActionResult> UpdateComponentStockAsync(Guid id, [FromBody] UpdateComponentStockDto dto)
         {

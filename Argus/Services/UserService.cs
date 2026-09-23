@@ -89,7 +89,7 @@ namespace Argus.Services
         }
         public async Task<ErrorOr<Success>> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto, CancellationToken ct = default)
         {
-
+            // NotFound is possible if the user has been deleted (IsDeleted), but their JWT token has not yet expired.
 
             if (currentUser.UserId == null)
                 return UserErrors.NotAuthenticated;

@@ -2,6 +2,8 @@
 using Argus.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Argus.Constants.RouteNames;
+using Argus.Enums;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Argus.Controllers
 {

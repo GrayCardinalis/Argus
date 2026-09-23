@@ -8,31 +8,31 @@ namespace Argus.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<SupportRequestComponent> builder)
         {
-            // 1. Имя таблицы
+            // 1. Table name
             //builder.ToTable("SupportRequestComponents");
 
-            // 2. РЕШЕНИЕ ОШИБКИ: Задаем составной первичный ключ
-            // EF Core поймет, что уникальность строки определяется связкой Заявка + Деталь
+            // 2. ERROR FIX: Define the composite primary key
+            // EF Core will understand that row uniqueness is determined by the Request + Component pair
             builder.HasKey(src => new { src.SupportRequestId, src.ComponentId });
 
-            // 3. Защищаем поле Quantity от отрицательных значений на уровне БД (Check Constraint)
+            // 3. Protect the Quantity field from negative values at the DB level (Check Constraint)
             builder.Property(src => src.Quantity)
                 .IsRequired();
 
             builder.ToTable(t => t.HasCheckConstraint("CK_Quantity_Positive", "quantity > 0"));
 
-            // 4. Явная настройка связей (Foreign Keys)
-            // Связь с заявкой
+            // 4. Explicit relationship configuration (Foreign Keys)
+            // Relationship with the request
             builder.HasOne(src => src.SupportRequest)
-                .WithMany() // У заявки может быть много потраченных деталей
+                .WithMany() // A request can have many used components
                 .HasForeignKey(src => src.SupportRequestId)
-                .OnDelete(DeleteBehavior.Cascade); // Если удаляем заявку, удаляются и записи о ее деталях
+                .OnDelete(DeleteBehavior.Cascade); // If the request is deleted, the records of its components are deleted too
 
-            // Связь с деталью (складом)
+            // Relationship with the component (warehouse)
             builder.HasOne(src => src.Component)
                 .WithMany()
                 .HasForeignKey(src => src.ComponentId)
-                .OnDelete(DeleteBehavior.Restrict); // ЗАПРЕЩАЕМ удалять деталь со склада, если она привязана к истории ремонта
+                .OnDelete(DeleteBehavior.Restrict); // FORBID deleting a component from the warehouse if it is linked to repair history
         }
     }
 }

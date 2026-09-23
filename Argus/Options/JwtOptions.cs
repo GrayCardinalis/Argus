@@ -12,7 +12,7 @@ namespace Argus.Options
         public string Issuer { get; set; } = string.Empty;
         [Required]
         public string Audience { get; set; } = string.Empty;
-        //[Required] Общее правило: [Required] осмыслен только для ссылочных типов и Nullable<T>. Для типа-значения его роль выполняет проверка диапазона, отсекающая значение по умолчанию.
+        //[Required] General rule: [Required] is meaningful only for reference types and Nullable<T>. For a value type, its role is fulfilled by a range check that excludes the default value.
         [Range(1, 15)]
         public int AccessTokenLifetimeInMinutes { get; set; }
     }

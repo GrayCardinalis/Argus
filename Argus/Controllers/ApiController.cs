@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Argus.Controllers
 {
 
-    // Все общие атрибуты (типа [ApiController]) переезжают сюда
+    // All common attributes (such as [ApiController]) are moved here
     [ApiController]
     public abstract class ApiController : ControllerBase
     {
@@ -14,11 +14,11 @@ namespace Argus.Controllers
             if (errors.Count == 0)
                 return Problem();
 
-            // Если ВСЕ ошибки в списке — это ошибки валидации, отдаем 400 Bad Request с деталями
+            // If ALL errors in the list are validation errors, return 400 Bad Request with details.
             if (errors.All(error => error.Type == ErrorType.Validation))
                 return ValidationProblem(errors);
 
-            // В противном случае берем первую ошибку и маппим её статус
+            // Otherwise, we take the first error and map its status.
             return Problem(errors[0]);
         }
 

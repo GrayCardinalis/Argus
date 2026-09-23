@@ -60,7 +60,7 @@ namespace Argus.Controllers
         {
             var result = await userService.UpdateUserPasswordAsync(id, dto, ct);
 
-            // Используем .Match(). Успех превращаем в 204 NoContent, ошибки летят в наш базовый ApiController
+            // We use .Match(). We turn success into 204 NoContent, and errors are sent to our base ApiController.
             return result.Match(
                 success => NoContent(),
                 errors => Problem(errors)
