@@ -67,7 +67,6 @@ namespace Argus.Controllers
             );
         }
 
-        [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPatch("{id:guid}/profile")]
         public async Task<IActionResult> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken ct)
         {
