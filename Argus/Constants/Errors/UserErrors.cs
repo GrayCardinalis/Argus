@@ -12,11 +12,6 @@ namespace Argus.Constants.Errors
                 code: "User.NotFound",
                 description: "User not found.");
 
-        public static readonly Error NotAuthenticated =
-            Error.Unauthorized(
-                code: "User.NotAuthenticated",
-                description: "Authentication is required to access this resource.");
-
         public static readonly Error InvalidAuthentication =
             Error.Unauthorized(
                 code: "User.InvalidCredentials",

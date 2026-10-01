@@ -141,9 +141,6 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> DeleteUserAsync(Guid id, CancellationToken ct = default)
         {
-            if (currentUser.UserId == null)
-                return UserErrors.NotAuthenticated;
-
             if (id == currentUser.UserId) 
                 return UserErrors.CannotDeleteSelf;
 
