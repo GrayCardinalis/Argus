@@ -14,21 +14,21 @@ namespace Argus.Data.Configurations
 
             builder.Property(u=>u.FullName)
                 .IsRequired()
-                .HasMaxLength(200);
+                .HasMaxLength(UserFieldLengths.FullNameMax);
 
             builder.Property(u => u.Department)
-                .HasMaxLength(200);
+                .HasMaxLength(UserFieldLengths.DepartmentMax);
 
             builder.Property(u => u.Email)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(UserFieldLengths.EmailMax);
             builder.HasIndex(u => u.Email)
                 .IsUnique()
                 .HasFilter(DatabaseFilters.NotDeleted);
 
             builder.Property(u => u.UserName)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(UserFieldLengths.UserNameMax);
             builder.HasIndex (u => u.UserName)
                 .IsUnique()
                 .HasFilter(DatabaseFilters.NotDeleted);
@@ -39,7 +39,7 @@ namespace Argus.Data.Configurations
 
             builder.Property(u => u.Role)
                 .HasConversion<string>() // Store the enum as a string in the database
-                .HasMaxLength(50)
+                .HasMaxLength(UserFieldLengths.RoleMax)
                 .IsRequired();
 
             builder.HasQueryFilter(u => !u.IsDeleted); // Global query filter to exclude deleted users

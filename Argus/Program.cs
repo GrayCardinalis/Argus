@@ -1,21 +1,22 @@
 using Argus.Data;
-using Argus.Infrastructure;
-using Argus.Mappings;
 using Argus.Options;
-using Argus.Providers;
-using Argus.Providers.Interfaces;
 using Argus.Services;
+using Argus.Mappings;
+using Argus.Providers;
+using Argus.Infrastructure;
 using Argus.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Argus.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Scalar.AspNetCore;
 using System.Globalization;
-using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Authorization;
 using Argus.Constants.Security;
+using System.Threading.RateLimiting;
+using System.Text.Json.Serialization;
+using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,11 +47,14 @@ builder.Services.AddExceptionHandler<UniqueConstraintExceptionHandler>();
 
 builder.Services.AddProblemDetails();
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(options => { options.Filters.Add<ValidationFilter>(); })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+ValidatorOptions.Global.LanguageManager.Enabled = false;
 
 builder.Services.AddRateLimiter(limiterOptions =>
 {

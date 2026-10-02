@@ -49,14 +49,12 @@ namespace Argus.Services
             if (user == null)
                 return UserErrors.NotFound;
 
-            return user; 
+            return user;
+
         }
 
         public async Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto, CancellationToken ct = default)
         {
-            if (dto.Password != dto.ConfirmPassword)
-                return UserErrors.InvalidPassword;
-
             var isUserExists = await context.Users
                 //Protection from dublicates. Check if the UserName or Name is busy
                 .AnyAsync(u=>u.UserName == dto.UserName || u.Email == dto.Email, ct);

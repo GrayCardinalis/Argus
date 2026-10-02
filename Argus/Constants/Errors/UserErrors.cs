@@ -16,10 +16,6 @@ namespace Argus.Constants.Errors
             Error.Unauthorized(
                 code: "User.InvalidCredentials",
                 description: "Invalid username or password.");
-        public static readonly Error InvalidPassword =
-            Error.Validation(
-                code: "User.InvalidPassword",
-                description: "Password is invalid.");
         public static readonly Error WrongCurrentPassword =
             Error.Validation(
                 code: "User.WrongCurrentPassword",
