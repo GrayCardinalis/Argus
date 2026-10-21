@@ -4,9 +4,6 @@ namespace Argus.Constants.Errors
 {
     public static class UserErrors
     {
-        //The error code will be: "User.Conflict"
-        // The title will be: "User already exists"
-
         public static readonly Error NotFound =
             Error.NotFound(
                 code: "User.NotFound",

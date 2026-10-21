@@ -59,7 +59,6 @@ namespace Argus.Migrations
                         .HasColumnName("name");
 
                     b.Property<int>("Quantity")
-                        .HasMaxLength(1000)
                         .HasColumnType("integer")
                         .HasColumnName("quantity");
 
@@ -82,28 +81,39 @@ namespace Argus.Migrations
 
                     b.Property<string>("InventoryNumber")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("inventory_number");
 
                     b.Property<string>("IpAddress")
-                        .HasColumnType("text")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
                         .HasColumnName("ip_address");
 
                     b.Property<string>("ModelName")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
                         .HasColumnName("model_name");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer")
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("type");
 
                     b.HasKey("Id")
                         .HasName("pk_equipments");
+
+                    b.HasIndex("InventoryNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_equipments_inventory_number");
 
                     b.ToTable("equipments", (string)null);
                 });
@@ -140,7 +150,9 @@ namespace Argus.Migrations
                         .HasDatabaseName("ix_placement_histories_auditorium_id");
 
                     b.HasIndex("EquipmentId")
-                        .HasDatabaseName("ix_placement_histories_equipment_id");
+                        .IsUnique()
+                        .HasDatabaseName("ix_placement_histories_equipment_id")
+                        .HasFilter("removed_at IS NULL");
 
                     b.ToTable("placement_histories", (string)null);
                 });
