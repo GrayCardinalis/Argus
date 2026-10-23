@@ -30,8 +30,9 @@ builder.Services.AddScoped<IAuditoriumService, AuditoriumService>();
 builder.Services.AddScoped<IComponentService, ComponentService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICurrentUserProvider, JwtCurrentUserProvider>();
-builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddScoped <IPlacementHistoryService, PlacementHistoryService>();
+builder.Services.AddScoped<IEquipmentService, EquipmentService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -43,6 +44,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<ComponentMappingProfile>();
     cfg.AddProfile<UserMappingProfile>();
     cfg.AddProfile<PlacementHistoryMappingProfile>();
+    cfg.AddProfile<EquipmentMappingProfile>();
 });
 
 builder.Services.AddExceptionHandler<UniqueConstraintExceptionHandler>();
