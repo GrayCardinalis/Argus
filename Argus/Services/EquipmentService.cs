@@ -69,6 +69,13 @@ namespace Argus.Services
                 ? null
                 : dto.IpAddress.Trim();
 
+            var activePlacement = await context.PlacementHistories
+                .Where(ph => ph.EquipmentId == id && ph.RemovedAt == null)
+                .SingleOrDefaultAsync(ct);
+
+            if (dto.Status == EquipmentStatus.Recycled)
+                activePlacement?.RemovedAt = DateTimeOffset.UtcNow;
+
             await context.SaveChangesAsync(ct);
 
             return Result.Success;
@@ -81,6 +88,13 @@ namespace Argus.Services
                 return EquipmentErrors.NotFound;
 
             equipment.Status = EquipmentStatus.Recycled;
+
+            var activePlacement = await context.PlacementHistories
+                .Where(ph => ph.EquipmentId == id && ph.RemovedAt == null)
+                .SingleOrDefaultAsync(ct);
+
+            if (activePlacement != null)
+                activePlacement.RemovedAt = DateTimeOffset.UtcNow;
 
             await context.SaveChangesAsync(ct);
 

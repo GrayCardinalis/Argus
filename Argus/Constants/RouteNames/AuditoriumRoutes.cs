@@ -4,5 +4,7 @@
     {
         public const string GetAllAuditoriums = nameof(GetAllAuditoriums);
         public const string GetAuditoriumById = nameof(GetAuditoriumById);
+        public const string CreateAuditorium = nameof(CreateAuditorium);
+        public const string DeleteAuditorium = nameof(DeleteAuditorium);
     }
 }

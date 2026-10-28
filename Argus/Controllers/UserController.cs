@@ -13,7 +13,7 @@ namespace Argus.Controllers
     public class UserController(IUserService userService) : ApiController
     {
         [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpGet]
+        [HttpGet(Name = UserRoutes.GetAllUsers)]
         public async Task<ActionResult<List<UserDto>>> GetAllUsersAsync(CancellationToken ct)
         {
             var result = await userService.GetAllUsersAsync(ct);
@@ -43,7 +43,7 @@ namespace Argus.Controllers
 
         [AllowAnonymous]
         [EnableRateLimiting(RateLimitPolicies.Auth)]
-        [HttpPost]
+        [HttpPost(Name = UserRoutes.CreateUser)]
         public async Task<ActionResult<UserDto>> CreateUserAsync(CreateUserDto dto, CancellationToken ct)
         {
             var result = await userService.CreateUserAsync(dto, ct);
@@ -55,7 +55,7 @@ namespace Argus.Controllers
                 errors => Problem(errors));
         }
 
-        [HttpPatch("{id:guid}/password")]
+        [HttpPatch("{id:guid}/password", Name = UserRoutes.UpdateUserPassword)]
         public async Task<IActionResult> UpdateUserPasswordAsync(Guid id, UpdateUserPasswordDto dto, CancellationToken ct)
         {
             var result = await userService.UpdateUserPasswordAsync(id, dto, ct);
@@ -67,7 +67,7 @@ namespace Argus.Controllers
             );
         }
 
-        [HttpPatch("{id:guid}/profile")]
+        [HttpPatch("{id:guid}/profile", Name = UserRoutes.UpdateUserProfile)]
         public async Task<IActionResult> UpdateUserProfileAsync(Guid id, UpdateUserProfileDto dto, CancellationToken ct)
         {
             var result = await userService.UpdateUserProfileAsync(id, dto,ct);
@@ -78,7 +78,7 @@ namespace Argus.Controllers
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpDelete("{id:guid}")]
+        [HttpDelete("{id:guid}", Name = UserRoutes.DeleteUser)]
         public async Task<IActionResult> DeleteUserAsync(Guid id, CancellationToken ct)
         {
             var result = await userService.DeleteUserAsync(id, ct);

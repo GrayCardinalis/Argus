@@ -28,7 +28,7 @@ namespace Argus.Controllers
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpPost]
+        [HttpPost(Name = ComponentRoutes.CreateComponent)]
         public async Task<ActionResult<ComponentDto>> CreateComponentAsync([FromBody] CreateComponentDto createComponentDto)
         {
             var createdComponent = await componentService.CreateComponentAsync(createComponentDto);
@@ -38,7 +38,7 @@ namespace Argus.Controllers
 
         // SCENARIO 1: Full editing of the product card (Admin)
         [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpPut("{id:guid}/name")]
+        [HttpPut("{id:guid}/name", Name = ComponentRoutes.UpdateComponentName)]
         public async Task<IActionResult> UpdateComponentNameAsync(Guid id, [FromBody] UpdateComponentNameDto dto)
         {
             var isUpdated = await componentService.UpdateComponentNameAsync(id, dto);
@@ -47,7 +47,7 @@ namespace Argus.Controllers
 
         // SCENARIO 2: Rapid change in inventory levels
         [Authorize(Roles = nameof(UserRole.Admin) + "," + nameof(UserRole.Technician))]
-        [HttpPut("{id:guid}/stock")]
+        [HttpPut("{id:guid}/stock", Name = ComponentRoutes.UpdateComponentStock)]
         public async Task<IActionResult> UpdateComponentStockAsync(Guid id, [FromBody] UpdateComponentStockDto dto)
         {
             var isUpdated = await componentService.UpdateComponentStockAsync(id, dto);
@@ -55,7 +55,7 @@ namespace Argus.Controllers
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = ComponentRoutes.DeleteComponent)]
         public async Task<IActionResult> DeleteComponent(Guid id)
         {
             var isDeleted = await componentService.DeleteComponentAsync(id);

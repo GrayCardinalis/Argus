@@ -17,7 +17,7 @@ namespace Argus.Validators.Users
 
             RuleFor(x => x.Password)
                 .NotEmpty()
-                .MinimumLength(AuthConstants.PasswordMinLength)
+                //.MinimumLength(AuthConstants.PasswordMinLength)
                 .Must(password => System.Text.Encoding.UTF8.GetByteCount(password) <= AuthConstants.PasswordMaxBytes)
                 .WithMessage($"Password must not exceed {AuthConstants.PasswordMaxBytes} bytes in UTF-8 encoding.");
         }

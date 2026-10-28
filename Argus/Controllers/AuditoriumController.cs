@@ -29,15 +29,15 @@ namespace Argus.Controllers
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpPost]
-        public async Task<ActionResult<AuditoriumDto>> CreateAuditoriumAsync([FromBody] CreateAuditoriumDto createdAuditoriumDto)
+        [HttpPost(Name = AuditoriumRoutes.CreateAuditorium)]
+        public async Task<ActionResult<AuditoriumDto>> CreateAuditoriumAsync(CreateAuditoriumDto createdAuditoriumDto)
         {
             var createdAuditorium = await auditoriumService.CreateAuditoriumAsync(createdAuditoriumDto);
             return CreatedAtRoute(AuditoriumRoutes.GetAuditoriumById, new { id = createdAuditorium.Id }, createdAuditorium);
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}", Name = AuditoriumRoutes.DeleteAuditorium)]
         public async Task<IActionResult> DeleteAuditorium(Guid id)
         {
             var deleted = await auditoriumService.DeleteAuditoriumAsync(id);
