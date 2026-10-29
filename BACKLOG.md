@@ -112,6 +112,11 @@ README обещает ProblemDetails (RFC 7807) для всех ошибок, н
  Что сделать:
  - Пересмотреть тип UserErrors.CannotDeleteSelf: сейчас Validation (400), по смыслу Forbidden/Conflict
 
+##### Фильтрация списанного оборудования (Recycled) в общем списке GET api/equipment
+Приоритет: средний
+Сейчас `GetAllEquipmentAsync` возвращает всю технику подряд. Обычным пользователям списанные устройства мешают при оформлении заявок.
+Что сделать: по умолчанию исключать статус Recycled из общей выборки и добавить query-параметр (например, `?includeRecycled=true`) для ролей Admin и Technician.
+
 ## Инфраструктура
 
  - Docker Compose: приложение + PostgreSQL, запуск одной командой
