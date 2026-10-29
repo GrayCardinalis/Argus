@@ -13,5 +13,10 @@ namespace Argus.Constants.Errors
             Error.Conflict(
                 code: "Equipment.DuplicateInventoryNumber",
                 description: "Equipment with this inventory number already exists.");
+
+        public static readonly Error AuditoriumNotFound = 
+            Error.NotFound(
+                code: "Equipment.AuditoriumNotFound",
+                description: "Auditorium not found.");
     }
 }

@@ -6,9 +6,9 @@ namespace Argus.Services.Interfaces
 {
     public interface IAuditoriumService
     {
-        Task<List<AuditoriumDto>> GetAllAuditoriumsAsync();
-        Task<AuditoriumDto?> GetAuditoriumByIdAsync(Guid id); //? because if the Auditorium with the requested id is not found in the database.
-        Task<AuditoriumDto> CreateAuditoriumAsync(CreateAuditoriumDto createAuditoriumDto);
-        Task<bool> DeleteAuditoriumAsync(Guid id);
+        Task<List<AuditoriumDto>> GetAllAuditoriumsAsync(CancellationToken ct = default);
+        Task<AuditoriumDto?> GetAuditoriumByIdAsync(Guid id, CancellationToken ct =default); //? because if the Auditorium with the requested id is not found in the database.
+        Task<AuditoriumDto> CreateAuditoriumAsync(CreateAuditoriumDto createAuditoriumDto, CancellationToken ct = default);
+        Task<bool> DeleteAuditoriumAsync(Guid id, CancellationToken ct = default);
     }
 }
