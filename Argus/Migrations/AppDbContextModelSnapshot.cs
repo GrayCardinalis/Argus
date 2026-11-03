@@ -69,7 +69,10 @@ namespace Argus.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_components_name");
 
-                    b.ToTable("components", (string)null);
+                    b.ToTable("components", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Components_Quantity_NonNegative", "quantity >= 0");
+                        });
                 });
 
             modelBuilder.Entity("Argus.Models.Equipment", b =>
