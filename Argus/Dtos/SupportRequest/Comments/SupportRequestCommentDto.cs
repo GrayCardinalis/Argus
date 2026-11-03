@@ -7,6 +7,6 @@ namespace Argus.Dtos.SupportRequest.Comments
         public Guid SupportRequestId { get; set; }
         public string AuthorName { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
     }
 }
