@@ -14,6 +14,16 @@ namespace Argus.Data.Configurations
             builder.HasIndex(ph => ph.EquipmentId)
                 .IsUnique()
                 .HasFilter(DatabaseFilters.ActivePlacement);
+
+            builder.HasOne(ph => ph.Equipment)
+                .WithMany()
+                .HasForeignKey(ph => ph.EquipmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(ph => ph.Auditorium)
+                .WithMany()
+                .HasForeignKey(ph => ph.AuditoriumId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

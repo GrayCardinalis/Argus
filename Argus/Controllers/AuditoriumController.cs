@@ -3,7 +3,6 @@ using Argus.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Argus.Constants.RouteNames;
 using Argus.Enums;
-using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Argus.Dtos.Equipment;
 
@@ -40,10 +39,10 @@ namespace Argus.Controllers
         [HttpDelete("{id}", Name = AuditoriumRoutes.DeleteAuditorium)]
         public async Task<IActionResult> DeleteAuditorium(Guid id, CancellationToken ct)
         {
-            var deleted = await auditoriumService.DeleteAuditoriumAsync(id, ct);
-            return deleted 
-                ? NoContent() 
-                : NotFound($"Auditorium with ID: {id} not found");
+            var result = await auditoriumService.DeleteAuditoriumAsync(id, ct);
+            return result.Match(
+                success => NoContent(),
+                errors => Problem(errors));
         }
 
         [HttpGet("{id:guid}/equipment", Name = AuditoriumRoutes.GetEquipmentByAuditorium)]

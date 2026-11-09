@@ -5,6 +5,9 @@ using Argus.Dtos.Auditoriums;
 using Argus.Services.Interfaces;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using ErrorOr;
+using Argus.Constants.Errors;
+using Npgsql;
 
 namespace Argus.Services
 {
@@ -38,12 +41,45 @@ namespace Argus.Services
             return mapper.Map <AuditoriumDto>(newAuditorium);
         }
 
-        public async Task<bool> DeleteAuditoriumAsync(Guid id, CancellationToken ct = default)
+        public async Task<ErrorOr<Success>> DeleteAuditoriumAsync(Guid id, CancellationToken ct = default)
         {
-            var deletedAuditorium = await context.Auditoriums
-                .Where(a => a.Id == id)
-                .ExecuteDeleteAsync(ct);
-            return deletedAuditorium > 0;
+            var auditoriumExists = await context.Auditoriums
+                .AnyAsync(a => a.Id == id, ct);
+
+            if(!auditoriumExists)
+                return AuditoriumErrors.NotFound;
+
+            var auditoriumInUse = await context.PlacementHistories
+                .AnyAsync(ph => ph.AuditoriumId == id, ct);
+
+            if (auditoriumInUse)
+                return AuditoriumErrors.InUse;
+
+            var supportRequestInUse = await context.SupportRequests
+                .AnyAsync(sr => sr.AuditoriumId == id, ct);
+            
+            if (supportRequestInUse)
+                return AuditoriumErrors.InUse;
+
+            try
+            {
+                var deletedAuditorium = await context.Auditoriums
+                    .Where(a => a.Id == id)
+                    .ExecuteDeleteAsync(ct);
+
+                if (deletedAuditorium == 0)
+                    return AuditoriumErrors.NotFound;
+
+                return Result.Success;
+            }
+            catch (PostgresException ex) when(
+            (ex.SqlState == PostgresErrorCodes.RestrictViolation ||
+            ex.SqlState == PostgresErrorCodes.ForeignKeyViolation)  &&
+            (ex.ConstraintName == "fk_placement_histories_auditoriums_auditorium_id" ||
+            ex.ConstraintName == "fk_support_requests_auditoriums_auditorium_id"))
+            {
+                return AuditoriumErrors.InUse;
+            }
         }
     }
 }

@@ -363,14 +363,14 @@ namespace Argus.Migrations
                     b.HasOne("Argus.Models.Auditorium", "Auditorium")
                         .WithMany()
                         .HasForeignKey("AuditoriumId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_placement_histories_auditoriums_auditorium_id");
 
                     b.HasOne("Argus.Models.Equipment", "Equipment")
                         .WithMany()
                         .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_placement_histories_equipments_equipment_id");
 
@@ -384,27 +384,28 @@ namespace Argus.Migrations
                     b.HasOne("Argus.Models.Auditorium", "Auditorium")
                         .WithMany()
                         .HasForeignKey("AuditoriumId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_support_requests_auditoriums_auditorium_id");
 
                     b.HasOne("Argus.Models.User", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_support_requests_users_client_id");
 
                     b.HasOne("Argus.Models.Equipment", "Equipment")
                         .WithMany()
                         .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_support_requests_equipments_equipment_id");
 
                     b.HasOne("Argus.Models.User", "Executor")
                         .WithMany()
                         .HasForeignKey("ExecutorId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_support_requests_users_executor_id");
 
                     b.Navigation("Auditorium");
