@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Argus.Constants.RouteNames;
 using Microsoft.AspNetCore.Authorization;
 using Argus.Enums;
+using ErrorOr;
 
 namespace Argus.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class ComponentController(IComponentService componentService) : ControllerBase
+    public class ComponentController(IComponentService componentService) : ApiController
     {
         [HttpGet(Name = ComponentRoutes.GetAllComponent)]
         public async Task<ActionResult<List<ComponentDto>>> GetAllComponentAsync(CancellationToken ct)
@@ -58,11 +58,11 @@ namespace Argus.Controllers
         [HttpDelete("{id}", Name = ComponentRoutes.DeleteComponent)]
         public async Task<IActionResult> DeleteComponent(Guid id, CancellationToken ct)
         {
-            var isDeleted = await componentService.DeleteComponentAsync(id, ct);
+            var result = await componentService.DeleteComponentAsync(id, ct);
 
-            return isDeleted
-               ? NoContent() //204 error (perfect for delete operation)
-               : NotFound($"Component with id {id} not found."); //404 error
+            return result.Match(
+                success => NoContent(),
+                errors => Problem(errors)); 
         }
     }
 }
