@@ -18,5 +18,15 @@ namespace Argus.Constants.Errors
             Error.NotFound(
                 code: "Equipment.AuditoriumNotFound",
                 description: "Auditorium not found.");
+
+        public static readonly Error AlreadyRecycled =
+            Error.Conflict(
+                code: "Equipment.AlreadyRecycled",
+                description: "Recycled equipment cannot be updated.");
+
+        public static readonly Error RecyclingRequiresDelete =
+            Error.Validation(
+                code: "Equipment.RecyclingRequiresDelete",
+                description: "Use the delete endpoint to recycle equipment.");
     }
 }

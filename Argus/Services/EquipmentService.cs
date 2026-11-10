@@ -63,21 +63,17 @@ namespace Argus.Services
             if(equipment == null)
                 return EquipmentErrors.NotFound;
 
+            if(equipment.Status == EquipmentStatus.Recycled)
+                return EquipmentErrors.AlreadyRecycled;
+
+            if(dto.Status == EquipmentStatus.Recycled)
+                return EquipmentErrors.RecyclingRequiresDelete;
+
             mapper.Map(dto, equipment);
 
             equipment.IpAddress = string.IsNullOrWhiteSpace(dto.IpAddress)
                 ? null
                 : dto.IpAddress.Trim();
-
-            if (dto.Status == EquipmentStatus.Recycled)
-            {
-                var activePlacement = await context.PlacementHistories
-                    .Where(ph => ph.EquipmentId == id && ph.RemovedAt == null)
-                    .SingleOrDefaultAsync(ct);
-
-                if (activePlacement != null)
-                    activePlacement.RemovedAt = DateTimeOffset.UtcNow;            
-            }
 
             await context.SaveChangesAsync(ct);
 

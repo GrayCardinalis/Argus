@@ -18,5 +18,10 @@ namespace Argus.Constants.Errors
                     code: "PlacementHistory.AlreadyInLocation",
                     description: "The equipment is already in the specified location.");
 
+        public static readonly Error EquipmentRecycled =
+            Error.Conflict(
+                    code: "PlacementHistory.EquipmentRecycled",
+                    description: "Recycled equipment cannot be moved.");
+
     }
 }

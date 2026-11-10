@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Argus.Models;
 using Argus.Constants.Errors;
 using AutoMapper.QueryableExtensions;
+using Argus.Enums;
 
 namespace Argus.Services
 {
@@ -31,10 +32,15 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> MoveEquipmentAsync(Guid equipmentId, MoveEquipmentDto dto, CancellationToken ct = default)
         {
-            var equipmentExists = await context.Equipments.AnyAsync(e => e.Id == equipmentId, ct);
+            var equipment = await context.Equipments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == equipmentId, ct);
 
-            if (!equipmentExists)
+            if (equipment == null)
                 return PlacementHistoryErrors.EquipmentNotFound;
+
+            if (equipment.Status == EquipmentStatus.Recycled)
+                return PlacementHistoryErrors.EquipmentRecycled;
 
             var auditoriumExists = await context.Auditoriums.AnyAsync(a => a.Id == dto.NewLocationId, ct);
 
