@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Argus.Models;
 using Argus.Constants.Errors;
 using AutoMapper.QueryableExtensions;
-using Argus.Enums;
+using Argus.Enums.EquipmentStatuses;
 
 namespace Argus.Services
 {

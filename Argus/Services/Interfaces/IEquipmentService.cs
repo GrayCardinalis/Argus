@@ -8,6 +8,7 @@ namespace Argus.Services.Interfaces
         Task<ErrorOr<List<EquipmentListDto>>> GetAllEquipmentAsync(CancellationToken ct = default);
         Task<ErrorOr<EquipmentDetailDto>> GetEquipmentByIdAsync(Guid id, CancellationToken ct = default);
         Task<ErrorOr<EquipmentDetailDto>> CreateEquipmentAsync(CreateEquipmentDto dto, CancellationToken ct = default);
+        Task<ErrorOr<Success>> UpdateEquipmentStatusAsync(Guid id, UpdateEquipmentStatusDto dto, CancellationToken ct = default);
         Task<ErrorOr<Success>> UpdateEquipmentAsync(Guid id, UpdateEquipmentDto dto, CancellationToken ct = default);
         Task<ErrorOr<Success>> DeleteEquipmentAsync(Guid id, CancellationToken ct = default);
         Task<ErrorOr<List<EquipmentListDto>>> GetEquipmentByAuditoriumAsync(Guid auditoriumId, CancellationToken ct = default);

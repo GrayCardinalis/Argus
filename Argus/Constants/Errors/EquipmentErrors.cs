@@ -24,9 +24,9 @@ namespace Argus.Constants.Errors
                 code: "Equipment.AlreadyRecycled",
                 description: "Recycled equipment cannot be updated.");
 
-        public static readonly Error RecyclingRequiresDelete =
+        public static readonly Error InvalidOperationalStatus =
             Error.Validation(
-                code: "Equipment.RecyclingRequiresDelete",
-                description: "Use the delete endpoint to recycle equipment.");
+                code: "Equipment.InvalidOperationalStatus",
+                description: "Invalid equipment operational status.");
     }
 }

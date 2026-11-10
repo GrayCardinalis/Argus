@@ -16,9 +16,6 @@ namespace Argus.Validators.Equipment
 
             RuleFor(e => e.IpAddress)
                 .MaximumLength(EquipmentFieldLengths.IpAddressMax);
-
-            RuleFor(e => e.Status)
-                .IsInEnum();
         }
     }
 }

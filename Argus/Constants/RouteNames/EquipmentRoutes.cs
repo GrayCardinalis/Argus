@@ -9,5 +9,6 @@
         public const string DeleteEquipment = nameof(DeleteEquipment);
         public const string GetEquipmentHistory = nameof(GetEquipmentHistory);
         public const string MoveEquipment = nameof(MoveEquipment);
+        public const string UpdateEquipmentStatus = nameof(UpdateEquipmentStatus);
     }
 }

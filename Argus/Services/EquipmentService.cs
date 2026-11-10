@@ -1,7 +1,7 @@
 ﻿using Argus.Constants.Errors;
 using Argus.Data;
 using Argus.Dtos.Equipment;
-using Argus.Enums;
+using Argus.Enums.EquipmentStatuses;
 using Argus.Models;
 using Argus.Services.Interfaces;
 using AutoMapper;
@@ -56,6 +56,35 @@ namespace Argus.Services
 
             return mapper.Map<EquipmentDetailDto>(newEquipment);
         }
+
+        public async Task<ErrorOr<Success>> UpdateEquipmentStatusAsync(Guid id, UpdateEquipmentStatusDto dto, CancellationToken ct = default)
+        {
+            var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
+
+            if (equipment == null)
+                return EquipmentErrors.NotFound;
+
+            if(equipment.Status == EquipmentStatus.Recycled)
+                return EquipmentErrors.AlreadyRecycled;
+
+            switch(dto.Status)
+            {
+                case EquipmentOperationalStatus.Active:
+                    equipment.Status = EquipmentStatus.Active;
+                    break;
+
+                case EquipmentOperationalStatus.UnderRepair:
+                    equipment.Status = EquipmentStatus.UnderRepair;
+                    break;
+
+                default:
+                    return EquipmentErrors.InvalidOperationalStatus;
+            }
+
+            await context.SaveChangesAsync(ct);
+
+            return Result.Success;
+        }
         public async Task<ErrorOr<Success>> UpdateEquipmentAsync(Guid id, UpdateEquipmentDto dto, CancellationToken ct = default)
         {
             var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
@@ -65,9 +94,6 @@ namespace Argus.Services
 
             if(equipment.Status == EquipmentStatus.Recycled)
                 return EquipmentErrors.AlreadyRecycled;
-
-            if(dto.Status == EquipmentStatus.Recycled)
-                return EquipmentErrors.RecyclingRequiresDelete;
 
             mapper.Map(dto, equipment);
 

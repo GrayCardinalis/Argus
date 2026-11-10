@@ -11,7 +11,8 @@ namespace Argus.Mappings
             CreateMap<Equipment, EquipmentListDto>();
             CreateMap<Equipment, EquipmentDetailDto>();
             CreateMap<CreateEquipmentDto, Equipment>();
-            CreateMap<UpdateEquipmentDto, Equipment>();
+            CreateMap<UpdateEquipmentDto, Equipment>()
+                .ForMember(dest => dest.Status, opt => opt.Ignore());
         }   
     }
 }

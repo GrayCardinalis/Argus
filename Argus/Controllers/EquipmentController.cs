@@ -42,7 +42,17 @@ namespace Argus.Controllers
         }
 
         [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Technician)}")]
-        [HttpPatch("{id:guid}", Name = EquipmentRoutes.UpdateEquipment)]
+        [HttpPatch("{id:guid}/status", Name = EquipmentRoutes.UpdateEquipmentStatus)]
+        public async Task<IActionResult> UpdateEquipmentStatusAsync(Guid id, UpdateEquipmentStatusDto dto, CancellationToken ct)
+        {
+            var result = await equipmentService.UpdateEquipmentStatusAsync(id, dto, ct);
+            return result.Match(
+                equipment => NoContent(),
+                errors => Problem(errors));
+        }
+
+        [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Technician)}")]
+        [HttpPut("{id:guid}", Name = EquipmentRoutes.UpdateEquipment)]
         public async Task<IActionResult> UpdateEquipmentAsync(Guid id, UpdateEquipmentDto dto, CancellationToken ct)
         {
             var result = await equipmentService.UpdateEquipmentAsync(id, dto, ct);
@@ -50,6 +60,7 @@ namespace Argus.Controllers
                 equipment => NoContent(),
                 errors => Problem(errors));
         }
+
 
         [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpDelete("{id:guid}", Name = EquipmentRoutes.DeleteEquipment)]

@@ -1,4 +1,4 @@
-﻿namespace Argus.Enums
+﻿namespace Argus.Enums.EquipmentStatuses
 {
     public enum EquipmentStatus
     {

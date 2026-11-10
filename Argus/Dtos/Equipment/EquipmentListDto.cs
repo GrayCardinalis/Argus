@@ -1,4 +1,4 @@
-﻿using Argus.Enums;
+﻿using Argus.Enums.EquipmentStatuses;
 
 namespace Argus.Dtos.Equipment
 {
