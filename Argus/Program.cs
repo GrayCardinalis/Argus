@@ -33,6 +33,7 @@ builder.Services.AddScoped<ICurrentUserProvider, JwtCurrentUserProvider>();
 builder.Services.AddScoped <IPlacementHistoryService, PlacementHistoryService>();
 builder.Services.AddScoped<IEquipmentService, EquipmentService>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
+builder.Services.AddScoped<ISupportRequestService, SupportRequestService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -45,6 +46,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<UserMappingProfile>();
     cfg.AddProfile<PlacementHistoryMappingProfile>();
     cfg.AddProfile<EquipmentMappingProfile>();
+    cfg.AddProfile<SupportRequestMappingProfile>();
 });
 
 builder.Services.AddExceptionHandler<UniqueConstraintExceptionHandler>();

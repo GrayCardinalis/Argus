@@ -42,7 +42,7 @@ namespace Argus.Data.Configurations
                 .HasMaxLength(UserFieldLengths.RoleMax)
                 .IsRequired();
 
-            builder.HasQueryFilter(u => !u.IsDeleted); // Global query filter to exclude deleted users
+            builder.HasQueryFilter(QueryFilterNames.UserSoftDelete, u => !u.IsDeleted); // Global query filter to exclude deleted users
 
             builder.Property(u => u.IsDeleted)
                 .HasDefaultValue(false);

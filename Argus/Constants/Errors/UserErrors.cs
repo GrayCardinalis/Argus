@@ -41,6 +41,9 @@ namespace Argus.Constants.Errors
                 code: "User.Forbidden",
                 description: "You do not have permission to perform this action.");
 
-
+        public static readonly Error Unauthorized =
+            Error.Unauthorized(
+                code: "User.Unauthorized",
+                description: "The current user is unavailable or authentication is invalid.");
     }
 }

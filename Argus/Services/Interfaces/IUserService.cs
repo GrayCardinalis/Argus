@@ -1,5 +1,4 @@
 ﻿using Argus.Dtos.Users;
-using Microsoft.AspNetCore.Mvc;
 using ErrorOr;
 using Argus.Dtos.Authorization;
 

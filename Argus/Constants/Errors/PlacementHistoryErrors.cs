@@ -23,5 +23,9 @@ namespace Argus.Constants.Errors
                     code: "PlacementHistory.EquipmentRecycled",
                     description: "Recycled equipment cannot be moved.");
 
+        public static readonly Error EquipmentNotPlaced =
+            Error.Conflict(
+                    code: "PlacementHistory.EquipmentNotPlaced",
+                    description: "The equipment has no active placement.");
     }
 }

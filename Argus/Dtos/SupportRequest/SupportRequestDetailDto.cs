@@ -1,5 +1,7 @@
 ﻿using Argus.Dtos.Users;
 using Argus.Enums;
+using Argus.Dtos.Equipment;
+using Argus.Dtos.Auditoriums;
 
 namespace Argus.Dtos.SupportRequest
 {
@@ -14,6 +16,8 @@ namespace Argus.Dtos.SupportRequest
 
         //Other Dto
         public UserDto Client { get; set; } = null!;
-
+        public EquipmentDetailDto Equipment { get; set; } = null!;
+        public AuditoriumDto Auditorium { get; set; } = null!;
+        public UserDto? Executor { get; set; }
     }
 }
