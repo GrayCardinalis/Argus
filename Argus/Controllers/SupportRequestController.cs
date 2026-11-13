@@ -1,6 +1,8 @@
 ﻿using Argus.Constants.RouteNames;
 using Argus.Dtos.SupportRequest;
+using Argus.Enums;
 using Argus.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Argus.Controllers
@@ -25,6 +27,17 @@ namespace Argus.Controllers
             var result = await supportRequestService.GetSupportRequestByIdAsync(id, ct);
             return result.Match<ActionResult<SupportRequestDetailDto>>(
                 supportRequest => Ok(supportRequest),
+                errors => Problem(errors));
+        }
+
+        [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Technician)}")]
+        [HttpPost("{id:guid}/assign-executor", Name = SupportRequestRoutes.AssignExecutor)]
+        public async Task<IActionResult> AssignExecutorAsync(Guid Id, AssignExecutorDto dto, CancellationToken ct)
+        {
+            var result = await supportRequestService.AssignExecutorAsync(Id, dto, ct);
+            
+            return result.Match(
+                success => Ok(),
                 errors => Problem(errors));
         }
     }
