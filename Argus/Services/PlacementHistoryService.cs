@@ -8,26 +8,26 @@ using Argus.Models;
 using Argus.Constants.Errors;
 using AutoMapper.QueryableExtensions;
 using Argus.Enums.EquipmentStatuses;
+using Argus.Dtos.Common;
+using Argus.Extensions;
 
 namespace Argus.Services
 {
     public class PlacementHistoryService(AppDbContext context, IMapper mapper) : IPlacementHistoryService
     {
-        public async Task<ErrorOr<List<PlacementHistoryDto>>> GetEquipmentHistoryAsync(Guid equipmentId, CancellationToken ct = default)
+        public async Task<ErrorOr<PagedResultDto<PlacementHistoryDto>>> GetEquipmentHistoryAsync(Guid equipmentId, PaginationQueryDto dto, CancellationToken ct = default)
         {
-            var equipmentExists = await context.Equipments.AnyAsync(e => e.Id == equipmentId, ct);
+            var equipmentExists = await context.Equipments
+                .AnyAsync(e => e.Id == equipmentId, ct);
 
             if (!equipmentExists)
                 return PlacementHistoryErrors.EquipmentNotFound;
 
-            var historyEquipment = await context.PlacementHistories
-                .AsNoTracking()
+            return await context.PlacementHistories
                 .Where(ph => ph.EquipmentId == equipmentId)
                 .OrderByDescending(ph => ph.InstalledAt)
-                .ProjectTo<PlacementHistoryDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
-
-            return historyEquipment;
+                .ThenByDescending(ph => ph.Id)
+                .ToPagedResultAsync<PlacementHistory, PlacementHistoryDto>(dto, mapper.ConfigurationProvider, ct);
         }
 
         public async Task<ErrorOr<Success>> MoveEquipmentAsync(Guid equipmentId, MoveEquipmentDto dto, CancellationToken ct = default)

@@ -1,5 +1,5 @@
-﻿using Argus.Constants.Database;
-using Argus.Dtos.SupportRequest;
+﻿using Argus.Dtos.SupportRequest;
+using Argus.Validators.Common;
 using FluentValidation;
 
 namespace Argus.Validators.SupportRequest
@@ -9,6 +9,8 @@ namespace Argus.Validators.SupportRequest
         public SupportRequestQueryDtoValidator()
         {
             RuleLevelCascadeMode = CascadeMode.Stop;
+
+            Include(new PaginationQueryDtoValidator());
 
             RuleFor(x => x.Status)
                 .IsInEnum()
@@ -24,16 +26,6 @@ namespace Argus.Validators.SupportRequest
                 .NotEqual(Guid.Empty)
                 .WithMessage("AuditoriumId must not be an empty GUID.")
                 .When(x => x.AuditoriumId.HasValue);
-
-            RuleFor(x => x.Page)
-                .GreaterThan(0)
-                .WithMessage("Page must be greater than 0.");
-
-            RuleFor(x => x.PageSize)
-                .GreaterThan(0)
-                .WithMessage("PageSize must be greater than 0.")
-                .LessThanOrEqualTo(PaginationDefaults.MaxPageSize)
-                .WithMessage($"PageSize must be less than or equal to {PaginationDefaults.MaxPageSize}.");
 
             RuleFor(x => x.CreatedFrom)
                 .LessThan(x => x.CreatedTo)

@@ -1,12 +1,13 @@
-﻿using Argus.Dtos.Users;
+﻿using Argus.Dtos.Authorization;
+using Argus.Dtos.Common;
+using Argus.Dtos.Users;
 using ErrorOr;
-using Argus.Dtos.Authorization;
 
 namespace Argus.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<ErrorOr<List<UserDto>>> GetAllUsersAsync(CancellationToken ct = default);
+        Task<ErrorOr<PagedResultDto<UserDto>>> GetAllUsersAsync(PaginationQueryDto dto, CancellationToken ct = default);
         Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id, CancellationToken ct = default);
         Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken ct = default);
         // 2. Authentication (For future login)

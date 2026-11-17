@@ -11,19 +11,19 @@ using Microsoft.EntityFrameworkCore;
 using Argus.Providers.Interfaces;
 using Argus.Constants.Security;
 using Argus.Dtos.Authorization;
+using Argus.Dtos.Common;
+using Argus.Extensions;
 
 namespace Argus.Services
 {
     public class UserService(AppDbContext context, IMapper mapper, ICurrentUserProvider currentUser, ITokenService tokenService) : IUserService
     {
-        public async Task<ErrorOr<List<UserDto>>> GetAllUsersAsync(CancellationToken ct = default)
+        public async Task<ErrorOr<PagedResultDto<UserDto>>> GetAllUsersAsync(PaginationQueryDto dto,CancellationToken ct = default)
         {
-            var users = await context.Users
-                .AsNoTracking() 
-                .ProjectTo<UserDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
-
-            return users;
+            return await context.Users
+                .OrderBy(u => u.FullName)
+                .ThenBy(u => u.Id)
+                .ToPagedResultAsync<User, UserDto>(dto, mapper.ConfigurationProvider,ct);
         }
         public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken ct = default)
         {

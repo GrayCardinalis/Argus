@@ -8,17 +8,20 @@ using Microsoft.EntityFrameworkCore;
 using ErrorOr;
 using Argus.Constants.Errors;
 using Npgsql;
+using Argus.Dtos.Common;
+using Argus.Extensions;
 
 namespace Argus.Services
 {
     public class AuditoriumService(AppDbContext context, IMapper mapper) : IAuditoriumService
     {
-        public async Task<List<AuditoriumDto>> GetAllAuditoriumsAsync(CancellationToken ct = default)
+        public async Task<PagedResultDto<AuditoriumDto>> GetAllAuditoriumsAsync(PaginationQueryDto dto, CancellationToken ct = default)
         {
             return await context.Auditoriums
-                .AsNoTracking()
-                .ProjectTo<AuditoriumDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
+                .OrderBy(a => a.BuildingNumber)
+                .ThenBy(a => a.RoomNumber)
+                .ThenBy(a => a.Id)
+                .ToPagedResultAsync<Auditorium, AuditoriumDto>(dto, mapper.ConfigurationProvider, ct);
         }
 
         public async Task<AuditoriumDto?> GetAuditoriumByIdAsync(Guid id, CancellationToken ct = default)

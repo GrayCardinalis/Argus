@@ -12,10 +12,8 @@ using AutoMapper.QueryableExtensions;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Argus.Dtos.Common;
-using AutoMapper.QueryableExtensions;
-using Microsoft.EntityFrameworkCore;
-using Argus.Dtos.Common;
 using Argus.Dtos.SupportRequest.Comments;
+using Argus.Extensions;
 
 namespace Argus.Services
 {
@@ -237,7 +235,7 @@ namespace Argus.Services
             return Result.Success;
         }
 
-        public async Task<ErrorOr<PagedResultDto<SupportRequestListDto>>> GetSupportRequestsAsync(SupportRequestQueryDto dto,CancellationToken ct = default)
+        public async Task<ErrorOr<PagedResultDto<SupportRequestListDto>>> GetSupportRequestsAsync(SupportRequestQueryDto dto, CancellationToken ct = default)
         {
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
@@ -273,32 +271,13 @@ namespace Argus.Services
             if (dto.CreatedTo is DateTimeOffset createdTo)
             {
                 var toUtc = createdTo.ToUniversalTime();
-                query = query.Where(sr => sr.CreatedAt <= toUtc);
+                query = query.Where(sr => sr.CreatedAt < toUtc);
             }
 
-            var totalCount = await query.CountAsync(ct);
-
-            var result = new PagedResultDto<SupportRequestListDto>
-            {
-                TotalCount = totalCount,
-                Page = dto.Page,
-                PageSize = dto.PageSize
-            };
-
-            var skip = ((long)dto.Page - 1) * dto.PageSize;
-
-            if (skip >= totalCount)
-                return result;
-
-            result.Items = await query
+            return await query
                 .OrderByDescending(sr => sr.CreatedAt)
                 .ThenByDescending(sr => sr.Id)
-                .Skip((int)skip)
-                .Take(dto.PageSize)
-                .ProjectTo<SupportRequestListDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
-
-            return result;
+                .ToPagedResultAsync<SupportRequest, SupportRequestListDto>(dto, mapper.ConfigurationProvider, ct);
         }
 
         public async Task<ErrorOr<SupportRequestCommentDto>> AddCommentAsync(Guid supportRequestId,CreateSupportRequestCommentDto dto,CancellationToken ct = default)
@@ -350,7 +329,7 @@ namespace Argus.Services
             };
         }
 
-        public async Task<ErrorOr<PagedResultDto<SupportRequestCommentDto>>> GetCommentsAsync(Guid supportRequestId, PaginationQueryDto dto,CancellationToken ct = default)
+        public async Task<ErrorOr<PagedResultDto<SupportRequestCommentDto>>> GetCommentsAsync(Guid supportRequestId, PaginationQueryDto dto, CancellationToken ct = default)
         {
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
@@ -371,36 +350,19 @@ namespace Argus.Services
             if (supportRequest == null)
                 return SupportRequestErrors.SupportRequestNotFound;
 
-            if (userRole != UserRole.Admin && userRole != UserRole.Technician && supportRequest.ClientId != userId)
-                return UserErrors.Forbidden;
-
-            var query = context.SupportRequestComments
-                .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
-                .Where(comment => comment.SupportRequestId == supportRequestId);
-
-            var totalCount = await query.CountAsync(ct);
-
-            var result = new PagedResultDto<SupportRequestCommentDto>
+            if (userRole != UserRole.Admin &&
+                userRole != UserRole.Technician &&
+                supportRequest.ClientId != userId)
             {
-                TotalCount = totalCount,
-                Page = dto.Page,
-                PageSize = dto.PageSize
-            };
+                return UserErrors.Forbidden;
+            }
 
-            var skip = ((long)dto.Page - 1) * dto.PageSize;
-
-            if (skip >= totalCount)
-                return result;
-
-            result.Items = await query
+            return await context.SupportRequestComments
+                .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
+                .Where(comment => comment.SupportRequestId == supportRequestId)
                 .OrderBy(comment => comment.CreatedAt)
                 .ThenBy(comment => comment.Id)
-                .Skip((int)skip)
-                .Take(dto.PageSize)
-                .ProjectTo<SupportRequestCommentDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
-
-            return result;
+                .ToPagedResultAsync<SupportRequestComment, SupportRequestCommentDto>(dto, mapper.ConfigurationProvider, ct);
         }
     }
 }

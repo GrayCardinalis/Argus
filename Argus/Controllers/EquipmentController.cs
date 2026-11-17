@@ -1,10 +1,11 @@
-﻿using Argus.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Argus.Constants.RouteNames;
+using Argus.Dtos.Common;
 using Argus.Dtos.Equipment;
-using Argus.Constants.RouteNames;
-using Microsoft.AspNetCore.Authorization;
-using Argus.Enums;
 using Argus.Dtos.PlacementHistory;
+using Argus.Enums;
+using Argus.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Argus.Controllers
 {
@@ -12,11 +13,22 @@ namespace Argus.Controllers
     public class EquipmentController(IEquipmentService equipmentService, IPlacementHistoryService placementHistoryService) : ApiController
     {
         [HttpGet(Name = EquipmentRoutes.GetAllEquipment)]
-        public async Task<ActionResult<List<EquipmentListDto>>> GetAllEquipmentAsync(CancellationToken ct)
+        public async Task<ActionResult<PagedResultDto<EquipmentListDto>>> GetAllEquipmentAsync([FromQuery] PaginationQueryDto dto,CancellationToken ct)
         {
-            var result = await equipmentService.GetAllEquipmentAsync(ct);
-            return result.Match<ActionResult<List<EquipmentListDto>>>(
-                equipment => Ok(equipment),
+            var result = await equipmentService.GetAllEquipmentAsync(dto, ct);
+
+            return result.Match<ActionResult<PagedResultDto<EquipmentListDto>>>(
+                response => Ok(response),
+                errors => Problem(errors));
+        }
+
+        [HttpGet("{id:guid}/placement-history", Name = EquipmentRoutes.GetEquipmentHistory)]
+        public async Task<ActionResult<PagedResultDto<PlacementHistoryDto>>> GetEquipmentHistoryAsync(Guid id, [FromQuery] PaginationQueryDto dto, CancellationToken ct)
+        {
+            var result = await placementHistoryService.GetEquipmentHistoryAsync(id, dto, ct);
+
+            return result.Match<ActionResult<PagedResultDto<PlacementHistoryDto>>>(
+                response => Ok(response),
                 errors => Problem(errors));
         }
 
@@ -69,15 +81,6 @@ namespace Argus.Controllers
             var result = await equipmentService.DeleteEquipmentAsync(id, ct);
             return result.Match(
                 equipment => NoContent(),
-                errors => Problem(errors));
-        }
-
-        [HttpGet("{id:guid}/placement-history", Name = EquipmentRoutes.GetEquipmentHistory)]
-        public async Task<ActionResult<List<PlacementHistoryDto>>> GetEquipmentHistoryAsync(Guid id, CancellationToken ct)
-        {
-            var result = await placementHistoryService.GetEquipmentHistoryAsync(id, ct);
-            return result.Match<ActionResult<List<PlacementHistoryDto>>>(
-                history => Ok(history),
                 errors => Problem(errors));
         }
 

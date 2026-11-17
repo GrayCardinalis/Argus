@@ -1,21 +1,23 @@
-﻿using Argus.Dtos.Components;
-using Argus.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Argus.Constants.RouteNames;
-using Microsoft.AspNetCore.Authorization;
+﻿using Argus.Constants.RouteNames;
+using Argus.Dtos.Common;
+using Argus.Dtos.Components;
 using Argus.Enums;
+using Argus.Services.Interfaces;
 using ErrorOr;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Argus.Controllers
 {
     [Route("api/[controller]")]
     public class ComponentController(IComponentService componentService) : ApiController
     {
+
         [HttpGet(Name = ComponentRoutes.GetAllComponent)]
-        public async Task<ActionResult<List<ComponentDto>>> GetAllComponentAsync(CancellationToken ct)
+        public async Task<ActionResult<PagedResultDto<ComponentDto>>> GetAllComponentAsync([FromQuery] PaginationQueryDto dto, CancellationToken ct)
         {
-            var components = await componentService.GetAllComponentAsync(ct);
-            return Ok(components);
+            var result = await componentService.GetAllComponentAsync(dto, ct);
+            return Ok(result);
         }
 
         [HttpGet("{id}", Name = ComponentRoutes.GetComponentById)]

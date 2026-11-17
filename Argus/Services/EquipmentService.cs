@@ -8,19 +8,19 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Argus.Dtos.Common;
+using Argus.Extensions;
 
 namespace Argus.Services
 {
     public class EquipmentService(AppDbContext context, IMapper mapper) : IEquipmentService
     {
-        public async Task<ErrorOr<List<EquipmentListDto>>> GetAllEquipmentAsync(CancellationToken ct = default)
+        public async Task<ErrorOr<PagedResultDto<EquipmentListDto>>> GetAllEquipmentAsync(PaginationQueryDto dto,CancellationToken ct = default)
         {
-            var equipments = await context.Equipments
-                .AsNoTracking()
-                .ProjectTo<EquipmentListDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
-                
-            return equipments;
+            return await context.Equipments
+                .OrderBy(e => e.InventoryNumber)
+                .ThenBy(e => e.Id)
+                .ToPagedResultAsync<Equipment, EquipmentListDto>(dto,mapper.ConfigurationProvider,ct);
         }
         public async Task<ErrorOr<EquipmentDetailDto>> GetEquipmentByIdAsync(Guid id, CancellationToken ct = default)
         {
@@ -34,6 +34,22 @@ namespace Argus.Services
                 return EquipmentErrors.NotFound;
 
             return equipment;
+        }
+        public async Task<ErrorOr<PagedResultDto<EquipmentListDto>>> GetEquipmentByAuditoriumAsync(Guid auditoriumId,PaginationQueryDto dto,CancellationToken ct = default)
+        {
+            var auditoriumExists = await context.Auditoriums
+                .AnyAsync(a => a.Id == auditoriumId, ct);
+
+            if (!auditoriumExists)
+                return EquipmentErrors.AuditoriumNotFound;
+
+            return await context.PlacementHistories
+                .Where(ph => ph.AuditoriumId == auditoriumId &&
+                             ph.RemovedAt == null)
+                .Select(ph => ph.Equipment!)
+                .OrderBy(e => e.InventoryNumber)
+                .ThenBy(e => e.Id)
+                .ToPagedResultAsync<Equipment, EquipmentListDto>(dto, mapper.ConfigurationProvider, ct);
         }
         public async Task<ErrorOr<EquipmentDetailDto>> CreateEquipmentAsync(CreateEquipmentDto dto, CancellationToken ct = default)
         {

@@ -1,5 +1,6 @@
 ﻿using Argus.Constants.RouteNames;
 using Argus.Constants.Security;
+using Argus.Dtos.Common;
 using Argus.Dtos.Users;
 using Argus.Enums;
 using Argus.Services.Interfaces;
@@ -14,11 +15,12 @@ namespace Argus.Controllers
     {
         [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpGet(Name = UserRoutes.GetAllUsers)]
-        public async Task<ActionResult<List<UserDto>>> GetAllUsersAsync(CancellationToken ct)
+        public async Task<ActionResult<PagedResultDto<UserDto>>> GetAllUsersAsync([FromQuery] PaginationQueryDto dto, CancellationToken ct)
         {
-            var result = await userService.GetAllUsersAsync(ct);
-            return result.Match<ActionResult<List<UserDto>>>(
-                user => Ok(user),
+            var result = await userService.GetAllUsersAsync(dto, ct);
+
+            return result.Match<ActionResult<PagedResultDto<UserDto>>>(
+                response => Ok(response),
                 errors => Problem(errors));
         }
 

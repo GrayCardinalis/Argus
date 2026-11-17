@@ -1,10 +1,11 @@
-﻿using Argus.Dtos.Auditoriums;
-using Argus.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Argus.Constants.RouteNames;
-using Argus.Enums;
-using Microsoft.AspNetCore.Authorization;
+﻿using Argus.Constants.RouteNames;
+using Argus.Dtos.Auditoriums;
+using Argus.Dtos.Common;
 using Argus.Dtos.Equipment;
+using Argus.Enums;
+using Argus.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Argus.Controllers
 {
@@ -12,10 +13,20 @@ namespace Argus.Controllers
     public class AuditoriumController(IAuditoriumService auditoriumService, IEquipmentService equipmentService) : ApiController
     {
         [HttpGet(Name = AuditoriumRoutes.GetAllAuditoriums)]
-        public async Task<ActionResult<List<AuditoriumDto>>> GetAllAuditoriums(CancellationToken ct)
+        public async Task<ActionResult<PagedResultDto<AuditoriumDto>>> GetAllAuditoriums([FromQuery] PaginationQueryDto dto, CancellationToken ct)
         {
-            var auditoriums = await auditoriumService.GetAllAuditoriumsAsync(ct);
-            return Ok(auditoriums);
+            var result = await auditoriumService.GetAllAuditoriumsAsync(dto, ct);
+            return Ok(result);
+        }
+
+        [HttpGet("{id:guid}/equipment", Name = AuditoriumRoutes.GetEquipmentByAuditorium)]
+        public async Task<ActionResult<PagedResultDto<EquipmentListDto>>> GetEquipmentByAuditoriumAsync(Guid id, [FromQuery] PaginationQueryDto dto, CancellationToken ct)
+        {
+            var result = await equipmentService.GetEquipmentByAuditoriumAsync(id, dto, ct);
+
+            return result.Match<ActionResult<PagedResultDto<EquipmentListDto>>>(
+                response => Ok(response),
+                errors => Problem(errors));
         }
 
         [HttpGet("{id}", Name = AuditoriumRoutes.GetAuditoriumById)]
@@ -42,16 +53,6 @@ namespace Argus.Controllers
             var result = await auditoriumService.DeleteAuditoriumAsync(id, ct);
             return result.Match(
                 success => NoContent(),
-                errors => Problem(errors));
-        }
-
-        [HttpGet("{id:guid}/equipment", Name = AuditoriumRoutes.GetEquipmentByAuditorium)]
-        public async Task<ActionResult<List<EquipmentListDto>>> GetEquipmentByAuditoriumAsync(Guid id, CancellationToken ct)
-        {
-            var equipments = await equipmentService.GetEquipmentByAuditoriumAsync(id, ct);
-
-            return equipments.Match<ActionResult<List<EquipmentListDto>>>(
-                equipmentList => Ok(equipmentList),
                 errors => Problem(errors));
         }
     }

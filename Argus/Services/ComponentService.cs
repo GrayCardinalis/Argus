@@ -8,17 +8,21 @@ using Argus.Services.Interfaces;
 using ErrorOr;
 using Argus.Constants.Errors;
 using Npgsql;
+using Argus.Dtos.Common;
+using Argus.Extensions;
 
 namespace Argus.Services
 {
     public class ComponentService(AppDbContext context, IMapper mapper) : IComponentService
     {
-        public async Task<List<ComponentDto>> GetAllComponentAsync(CancellationToken ct = default)
+        public async Task<PagedResultDto<ComponentDto>> GetAllComponentAsync(
+            PaginationQueryDto dto,
+            CancellationToken ct = default)
         {
             return await context.Components
-                .AsNoTracking()
-                .ProjectTo<ComponentDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
+                .OrderBy(c => c.Name)
+                .ThenBy(c => c.Id)
+                .ToPagedResultAsync<Component, ComponentDto>(dto, mapper.ConfigurationProvider, ct);
         }
 
         public async Task<ComponentDto?> GetComponentByIdAsync(Guid id, CancellationToken ct = default)
