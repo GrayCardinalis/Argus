@@ -10,6 +10,10 @@ namespace Argus.Mappings
         {
             CreateMap<CreateSupportRequestDto, SupportRequest>();
             CreateMap<SupportRequest, SupportRequestDetailDto>();
+            CreateMap<SupportRequest, SupportRequestListDto>()
+                .ForMember(
+                    dest => dest.RoomNumber,
+                    opt => opt.MapFrom(src => src.Auditorium!.RoomNumber));
         }
     }
 }

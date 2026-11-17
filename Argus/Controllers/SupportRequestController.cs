@@ -21,6 +21,17 @@ namespace Argus.Controllers
                 errors => Problem(errors));
         }
 
+        [Authorize]
+        [HttpGet(Name = SupportRequestRoutes.GetSupportRequests)]
+        public async Task<IActionResult> GetSupportRequestsAsync([FromQuery] SupportRequestQueryDto dto,CancellationToken ct)
+        {
+            var result = await supportRequestService.GetSupportRequestsAsync(dto, ct);
+
+            return result.Match(
+                response => Ok(response),
+                errors => Problem(errors));
+        }
+
         [HttpGet("{id:guid}", Name = SupportRequestRoutes.GetSupportRequestById)]
         public async Task<ActionResult<SupportRequestDetailDto>> GetSupportRequestByIdAsync(Guid id, CancellationToken ct)
         {

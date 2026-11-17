@@ -6,5 +6,6 @@
         public const string GetSupportRequestById = nameof(GetSupportRequestById);
         public const string AssignExecutor = nameof(AssignExecutor);
         public const string UpdateSupportRequestStatus = nameof(UpdateSupportRequestStatus);
+        public const string GetSupportRequests = nameof(GetSupportRequests);
     }
 }

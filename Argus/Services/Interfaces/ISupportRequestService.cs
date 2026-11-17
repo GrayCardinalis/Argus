@@ -1,4 +1,5 @@
-﻿using Argus.Dtos.SupportRequest;
+﻿using Argus.Dtos.Common;
+using Argus.Dtos.SupportRequest;
 using ErrorOr;
 
 namespace Argus.Services.Interfaces
@@ -10,5 +11,6 @@ namespace Argus.Services.Interfaces
         //Task<ErrorOr<List<SupportRequestDetailDto>>> GetSupportRequestsByStatusAsync(SupportRequestStatus status, CancellationToken ct = default);
         Task<ErrorOr<Success>> AssignExecutorAsync(Guid supportRequestId, AssignExecutorDto dto, CancellationToken ct = default);
         Task<ErrorOr<Success>> UpdateSupportRequestStatusAsync(Guid supportRequestId, UpdateSupportRequestStatusDto dto, CancellationToken ct = default);
+        Task<ErrorOr<PagedResultDto<SupportRequestListDto>>> GetSupportRequestsAsync(SupportRequestQueryDto dto,CancellationToken ct = default);
     }
 }

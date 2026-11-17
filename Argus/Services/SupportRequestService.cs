@@ -11,6 +11,9 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Argus.Dtos.Common;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Argus.Services
 {
@@ -222,6 +225,72 @@ namespace Argus.Services
                 return SupportRequestErrors.StatusConflict;
 
             return Result.Success;
+        }
+
+        public async Task<ErrorOr<PagedResultDto<SupportRequestListDto>>> GetSupportRequestsAsync(
+    SupportRequestQueryDto dto,
+    CancellationToken ct = default)
+        {
+            if (currentUser.UserId is not Guid userId)
+                return UserErrors.Unauthorized;
+
+            var userRole = await context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => (UserRole?)u.Role)
+                .FirstOrDefaultAsync(ct);
+
+            if (userRole == null)
+                return UserErrors.Unauthorized;
+
+            var query = context.SupportRequests.AsQueryable();
+
+            if (userRole != UserRole.Admin && userRole != UserRole.Technician)
+                query = query.Where(sr => sr.ClientId == userId);
+
+            if (dto.Status is SupportRequestStatus status)
+                query = query.Where(sr => sr.Status == status);
+
+            if (dto.ExecutorId is Guid executorId)
+                query = query.Where(sr => sr.ExecutorId == executorId);
+
+            if (dto.AuditoriumId is Guid auditoriumId)
+                query = query.Where(sr => sr.AuditoriumId == auditoriumId);
+
+            if (dto.CreatedFrom is DateTimeOffset createdFrom)
+            {
+                var fromUtc = createdFrom.ToUniversalTime();
+                query = query.Where(sr => sr.CreatedAt >= fromUtc);
+            }
+
+            if (dto.CreatedTo is DateTimeOffset createdTo)
+            {
+                var toUtc = createdTo.ToUniversalTime();
+                query = query.Where(sr => sr.CreatedAt <= toUtc);
+            }
+
+            var totalCount = await query.CountAsync(ct);
+
+            var result = new PagedResultDto<SupportRequestListDto>
+            {
+                TotalCount = totalCount,
+                Page = dto.Page,
+                PageSize = dto.PageSize
+            };
+
+            var skip = ((long)dto.Page - 1) * dto.PageSize;
+
+            if (skip >= totalCount)
+                return result;
+
+            result.Items = await query
+                .OrderByDescending(sr => sr.CreatedAt)
+                .ThenByDescending(sr => sr.Id)
+                .Skip((int)skip)
+                .Take(dto.PageSize)
+                .ProjectTo<SupportRequestListDto>(mapper.ConfigurationProvider)
+                .ToListAsync(ct);
+
+            return result;
         }
     }
 }
