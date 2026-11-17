@@ -1,4 +1,5 @@
-﻿using Argus.Enums;
+﻿using Argus.Constants.Database;
+using Argus.Enums;
 
 namespace Argus.Dtos.SupportRequest
 {
@@ -9,7 +10,7 @@ namespace Argus.Dtos.SupportRequest
         public Guid? AuditoriumId { get; set; }
         public DateTimeOffset? CreatedFrom { get; set; }
         public DateTimeOffset? CreatedTo { get; set; }
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 20;
+        public int Page { get; set; } = PaginationDefaults.Page;
+        public int PageSize { get; set; } = PaginationDefaults.PageSize;
     }
 }

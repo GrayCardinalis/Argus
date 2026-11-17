@@ -1,4 +1,5 @@
-﻿using Argus.Dtos.SupportRequest;
+﻿using Argus.Constants.Database;
+using Argus.Dtos.SupportRequest;
 using FluentValidation;
 
 namespace Argus.Validators.SupportRequest
@@ -31,8 +32,8 @@ namespace Argus.Validators.SupportRequest
             RuleFor(x => x.PageSize)
                 .GreaterThan(0)
                 .WithMessage("PageSize must be greater than 0.")
-                .LessThanOrEqualTo(100)
-                .WithMessage("PageSize must be less than or equal to 100.");
+                .LessThanOrEqualTo(PaginationDefaults.MaxPageSize)
+                .WithMessage($"PageSize must be less than or equal to {PaginationDefaults.MaxPageSize}.");
 
             RuleFor(x => x.CreatedFrom)
                 .LessThan(x => x.CreatedTo)

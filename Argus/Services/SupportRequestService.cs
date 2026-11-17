@@ -14,6 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using Argus.Dtos.Common;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+using Argus.Dtos.Common;
+using Argus.Dtos.SupportRequest.Comments;
 
 namespace Argus.Services
 {
@@ -114,7 +116,7 @@ namespace Argus.Services
 
             var user = await context.Users
                 .Where(u => u.Id == userId)
-                .Select(u => new { u.Role })
+                .Select(u => new {u.Role})
                 .FirstOrDefaultAsync(ct);
 
             if (user == null)
@@ -142,7 +144,11 @@ namespace Argus.Services
 
             var executor = await context.Users
                 .Where(u => u.Id == dto.ExecutorId)
-                .Select(u => new { u.Id, u.Role })
+                .Select(u => new 
+                { 
+                    u.Id, 
+                    u.Role 
+                })
                 .FirstOrDefaultAsync(ct);
 
             if (executor == null)
@@ -188,7 +194,11 @@ namespace Argus.Services
 
             var supportRequest = await context.SupportRequests
                 .Where(sr => sr.Id == supportRequestId)
-                .Select(sr => new { sr.Status, sr.ExecutorId })
+                .Select(sr => new 
+                { 
+                    sr.Status, 
+                    sr.ExecutorId 
+                })
                 .FirstOrDefaultAsync(ct);
 
             if (supportRequest == null)
@@ -227,9 +237,7 @@ namespace Argus.Services
             return Result.Success;
         }
 
-        public async Task<ErrorOr<PagedResultDto<SupportRequestListDto>>> GetSupportRequestsAsync(
-    SupportRequestQueryDto dto,
-    CancellationToken ct = default)
+        public async Task<ErrorOr<PagedResultDto<SupportRequestListDto>>> GetSupportRequestsAsync(SupportRequestQueryDto dto,CancellationToken ct = default)
         {
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
@@ -288,6 +296,108 @@ namespace Argus.Services
                 .Skip((int)skip)
                 .Take(dto.PageSize)
                 .ProjectTo<SupportRequestListDto>(mapper.ConfigurationProvider)
+                .ToListAsync(ct);
+
+            return result;
+        }
+
+        public async Task<ErrorOr<SupportRequestCommentDto>> AddCommentAsync(Guid supportRequestId,CreateSupportRequestCommentDto dto,CancellationToken ct = default)
+        {
+            if (currentUser.UserId is not Guid userId)
+                return UserErrors.Unauthorized;
+
+            var user = await context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => new
+                {
+                    u.Role,
+                    u.FullName
+                })
+                .FirstOrDefaultAsync(ct);
+
+            if (user == null)
+                return UserErrors.Unauthorized;
+
+            var supportRequest = await context.SupportRequests
+                .Where(sr => sr.Id == supportRequestId)
+                .Select(sr => new { sr.ClientId })
+                .FirstOrDefaultAsync(ct);
+
+            if (supportRequest == null)
+                return SupportRequestErrors.SupportRequestNotFound;
+
+            if (user.Role != UserRole.Admin && user.Role != UserRole.Technician && supportRequest.ClientId != userId)
+                return UserErrors.Forbidden;
+
+            var comment = new SupportRequestComment
+            {
+                SupportRequestId = supportRequestId,
+                AuthorId = userId,
+                Message = dto.Message.Trim(),
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+
+            context.SupportRequestComments.Add(comment);
+            await context.SaveChangesAsync(ct);
+
+            return new SupportRequestCommentDto
+            {
+                Id = comment.Id,
+                SupportRequestId = comment.SupportRequestId,
+                AuthorName = user.FullName,
+                Message = comment.Message,
+                CreatedAt = comment.CreatedAt
+            };
+        }
+
+        public async Task<ErrorOr<PagedResultDto<SupportRequestCommentDto>>> GetCommentsAsync(Guid supportRequestId, PaginationQueryDto dto,CancellationToken ct = default)
+        {
+            if (currentUser.UserId is not Guid userId)
+                return UserErrors.Unauthorized;
+
+            var userRole = await context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => (UserRole?)u.Role)
+                .FirstOrDefaultAsync(ct);
+
+            if (userRole == null)
+                return UserErrors.Unauthorized;
+
+            var supportRequest = await context.SupportRequests
+                .Where(sr => sr.Id == supportRequestId)
+                .Select(sr => new { sr.ClientId })
+                .FirstOrDefaultAsync(ct);
+
+            if (supportRequest == null)
+                return SupportRequestErrors.SupportRequestNotFound;
+
+            if (userRole != UserRole.Admin && userRole != UserRole.Technician && supportRequest.ClientId != userId)
+                return UserErrors.Forbidden;
+
+            var query = context.SupportRequestComments
+                .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
+                .Where(comment => comment.SupportRequestId == supportRequestId);
+
+            var totalCount = await query.CountAsync(ct);
+
+            var result = new PagedResultDto<SupportRequestCommentDto>
+            {
+                TotalCount = totalCount,
+                Page = dto.Page,
+                PageSize = dto.PageSize
+            };
+
+            var skip = ((long)dto.Page - 1) * dto.PageSize;
+
+            if (skip >= totalCount)
+                return result;
+
+            result.Items = await query
+                .OrderBy(comment => comment.CreatedAt)
+                .ThenBy(comment => comment.Id)
+                .Skip((int)skip)
+                .Take(dto.PageSize)
+                .ProjectTo<SupportRequestCommentDto>(mapper.ConfigurationProvider)
                 .ToListAsync(ct);
 
             return result;

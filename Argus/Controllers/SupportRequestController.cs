@@ -4,6 +4,8 @@ using Argus.Enums;
 using Argus.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Argus.Dtos.Common;
+using Argus.Dtos.SupportRequest.Comments;
 
 namespace Argus.Controllers
 {
@@ -21,7 +23,6 @@ namespace Argus.Controllers
                 errors => Problem(errors));
         }
 
-        [Authorize]
         [HttpGet(Name = SupportRequestRoutes.GetSupportRequests)]
         public async Task<IActionResult> GetSupportRequestsAsync([FromQuery] SupportRequestQueryDto dto,CancellationToken ct)
         {
@@ -60,6 +61,26 @@ namespace Argus.Controllers
 
             return result.Match(
                 success => Ok(),
+                errors => Problem(errors));
+        }
+
+        [HttpPost("{id:guid}/comments", Name = SupportRequestRoutes.AddComment)]
+        public async Task<IActionResult> AddCommentAsync(Guid id, [FromBody] CreateSupportRequestCommentDto dto, CancellationToken ct)
+        {
+            var result = await supportRequestService.AddCommentAsync(id, dto, ct);
+
+            return result.Match(
+                comment => StatusCode(StatusCodes.Status201Created, comment),
+                errors => Problem(errors));
+        }
+
+        [HttpGet("{id:guid}/comments", Name = SupportRequestRoutes.GetComments)]
+        public async Task<IActionResult> GetCommentsAsync(Guid id, [FromQuery] PaginationQueryDto dto, CancellationToken ct)
+        {
+            var result = await supportRequestService.GetCommentsAsync(id, dto, ct);
+
+            return result.Match(
+                response => Ok(response),
                 errors => Problem(errors));
         }
     }
