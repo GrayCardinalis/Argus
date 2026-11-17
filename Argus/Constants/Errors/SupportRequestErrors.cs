@@ -33,5 +33,25 @@ namespace Argus.Constants.Errors
                 Error.Conflict(
                     code: "SupportRequest.AssignmentConflict",
                     description: "The support request changed during assignment. Reload it and try again.");
+
+        public static readonly Error ResolvedRequestCannotBeUpdated =
+            Error.Conflict(
+                    code: "SupportRequest.ResolvedRequestCannotBeUpdated",
+                    description: "Not possible to update a completed service support request.");
+
+        public static readonly Error StatusForbidden =
+            Error.Forbidden(
+                    code: "SupportRequest.StatusForbidden",
+                    description: "You do not have permission to change the status.");
+
+        public static readonly Error StatusConflict =
+            Error.Conflict(
+                    code: "SupportRequest.StatusConflict",
+                    description: "The support request changed during status update. Reload it and try again.");
+
+        public static readonly Error ExecutorRequired =
+            Error.Conflict(
+                code: "SupportRequest.ExecutorRequired",
+                description: "Assign an executor before changing the status.");
     }
 }

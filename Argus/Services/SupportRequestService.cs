@@ -167,10 +167,59 @@ namespace Argus.Services
             return Result.Success;
         }
 
-        public async Task<ErrorOr<Success>> ChangeStatusAsync(Guid supportRequestId, AssignExecutorDto dto, CancellationToken ct = default)
+        public async Task<ErrorOr<Success>> UpdateSupportRequestStatusAsync(Guid supportRequestId,UpdateSupportRequestStatusDto dto,CancellationToken ct = default)
         {
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
+
+            var userRole = await context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => (UserRole?)u.Role)
+                .FirstOrDefaultAsync(ct);
+
+            if (userRole == null)
+                return UserErrors.Unauthorized;
+
+            if (userRole != UserRole.Admin && userRole != UserRole.Technician)
+                return SupportRequestErrors.StatusForbidden;
+
+            var supportRequest = await context.SupportRequests
+                .Where(sr => sr.Id == supportRequestId)
+                .Select(sr => new { sr.Status, sr.ExecutorId })
+                .FirstOrDefaultAsync(ct);
+
+            if (supportRequest == null)
+                return SupportRequestErrors.SupportRequestNotFound;
+
+            if (userRole == UserRole.Technician && supportRequest.ExecutorId != userId)
+                return SupportRequestErrors.StatusForbidden;
+
+            if (supportRequest.Status == SupportRequestStatus.Resolved)
+                return SupportRequestErrors.ResolvedRequestCannotBeUpdated;
+
+            if (supportRequest.Status == dto.NewStatus)
+                return Result.Success;
+
+            if (supportRequest.ExecutorId == null)
+                return SupportRequestErrors.ExecutorRequired;
+
+            DateTimeOffset? resolvedAt =
+                dto.NewStatus == SupportRequestStatus.Resolved
+                    ? DateTimeOffset.UtcNow
+                    : null;
+
+            var updatedRows = await context.SupportRequests
+                .Where(sr => sr.Id == supportRequestId
+                    && sr.Status == supportRequest.Status
+                    && sr.ExecutorId == supportRequest.ExecutorId)
+                .ExecuteUpdateAsync(
+                    setters => setters
+                        .SetProperty(sr => sr.Status, dto.NewStatus)
+                        .SetProperty(sr => sr.ResolvedAt, resolvedAt),
+                    ct);
+
+            if (updatedRows == 0)
+                return SupportRequestErrors.StatusConflict;
 
             return Result.Success;
         }

@@ -40,5 +40,16 @@ namespace Argus.Controllers
                 success => Ok(),
                 errors => Problem(errors));
         }
+
+        [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Technician)}")]
+        [HttpPatch("{id:guid}/update-status", Name = SupportRequestRoutes.UpdateSupportRequestStatus)]
+        public async Task<IActionResult> UpdateSupportRequestStatusAsync(Guid id, UpdateSupportRequestStatusDto dto, CancellationToken ct)
+        {
+            var result = await supportRequestService.UpdateSupportRequestStatusAsync(id, dto, ct);
+
+            return result.Match(
+                success => Ok(),
+                errors => Problem(errors));
+        }
     }
 }

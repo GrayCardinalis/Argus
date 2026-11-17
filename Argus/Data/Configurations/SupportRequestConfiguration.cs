@@ -13,6 +13,7 @@ namespace Argus.Data.Configurations
             builder.HasKey(sr => sr.Id);
 
             builder.Property(sr => sr.Status)
+                .HasConversion<string>() // Store the enum as a string in the database
                 .IsRequired();
 
             builder.Property(sr => sr.CreatedAt)
@@ -37,6 +38,14 @@ namespace Argus.Data.Configurations
                 .WithMany()
                 .HasForeignKey(sr => sr.AuditoriumId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(sr => sr.Title)
+                .HasMaxLength(SupportRequestFieldLengths.TitleMax)
+                .IsRequired();
+
+            builder.Property(sr => sr.Description)
+                .HasMaxLength(SupportRequestFieldLengths.DescriptionMax)
+                .IsRequired();
         }
     }
 }
