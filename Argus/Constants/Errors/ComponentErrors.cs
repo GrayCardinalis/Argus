@@ -18,5 +18,14 @@ namespace Argus.Constants.Errors
             Error.Conflict(
                 code: "Component.NonZeroStock",
                 description: "The component cannot be deleted while its stock quantity is non-zero.");
+        public static readonly Error InsufficientStock = 
+            Error.Conflict(
+                code: "Component.InsufficientStock",
+                description: "There are not enough components in stock.");
+
+        public static readonly Error ConsumptionQuantityLimitExceeded =
+            Error.Conflict(
+                code: "Component.ConsumptionQuantityLimitExceeded",
+                description: "The total consumed quantity exceeds the supported limit.");
     }
 }

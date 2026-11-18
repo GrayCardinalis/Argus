@@ -9,5 +9,7 @@
         public const string GetSupportRequests = nameof(GetSupportRequests);
         public const string AddComment = nameof(AddComment);
         public const string GetComments = nameof(GetComments);
+        public const string AddComponent = nameof(AddComponent);
+        public const string GetComponents = nameof(GetComponents);
     }
 }

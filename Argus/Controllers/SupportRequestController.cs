@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Argus.Dtos.Common;
 using Argus.Dtos.SupportRequest.Comments;
+using Argus.Dtos.SupportRequest.Components;
 
 namespace Argus.Controllers
 {
@@ -80,6 +81,27 @@ namespace Argus.Controllers
             var result = await supportRequestService.GetCommentsAsync(id, dto, ct);
 
             return result.Match(
+                response => Ok(response),
+                errors => Problem(errors));
+        }
+
+        [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Technician)}")]
+        [HttpPost("{id:guid}/components", Name = SupportRequestRoutes.AddComponent)]
+        public async Task<IActionResult> AddComponentAsync(Guid id, [FromBody] AddSupportRequestComponentDto dto, CancellationToken ct)
+        {
+            var result = await supportRequestService.AddComponentAsync(id, dto, ct);
+
+            return result.Match(
+                success => NoContent(),
+                errors => Problem(errors));
+        }
+
+        [HttpGet("{id:guid}/components", Name = SupportRequestRoutes.GetComponents)]
+        public async Task<ActionResult<PagedResultDto<SupportRequestComponentDto>>> GetComponentsAsync(Guid id, [FromQuery] PaginationQueryDto dto, CancellationToken ct)
+        {
+            var result = await supportRequestService.GetComponentsAsync(id, dto, ct);
+
+            return result.Match<ActionResult<PagedResultDto<SupportRequestComponentDto>>>(
                 response => Ok(response),
                 errors => Problem(errors));
         }

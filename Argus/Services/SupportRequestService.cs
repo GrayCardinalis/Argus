@@ -13,7 +13,9 @@ using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Argus.Dtos.Common;
 using Argus.Dtos.SupportRequest.Comments;
+using Argus.Dtos.SupportRequest.Components;
 using Argus.Extensions;
+using System.Data;
 
 namespace Argus.Services
 {
@@ -62,14 +64,12 @@ namespace Argus.Services
 
             await context.SaveChangesAsync(ct);
 
-            var result = await context.SupportRequests
+            return await context.SupportRequests
                 .AsNoTracking()
                 .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
                 .Where(sr => sr.Id == newSupportRequest.Id)
                 .ProjectTo<SupportRequestDetailDto>(mapper.ConfigurationProvider)
                 .SingleAsync(ct);
-
-            return result;
         }
 
         public async Task<ErrorOr<SupportRequestDetailDto>> GetSupportRequestByIdAsync(Guid supportRequestId, CancellationToken ct = default)
@@ -350,12 +350,8 @@ namespace Argus.Services
             if (supportRequest == null)
                 return SupportRequestErrors.SupportRequestNotFound;
 
-            if (userRole != UserRole.Admin &&
-                userRole != UserRole.Technician &&
-                supportRequest.ClientId != userId)
-            {
+            if (userRole != UserRole.Admin && userRole != UserRole.Technician && supportRequest.ClientId != userId)
                 return UserErrors.Forbidden;
-            }
 
             return await context.SupportRequestComments
                 .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
@@ -363,6 +359,120 @@ namespace Argus.Services
                 .OrderBy(comment => comment.CreatedAt)
                 .ThenBy(comment => comment.Id)
                 .ToPagedResultAsync<SupportRequestComment, SupportRequestCommentDto>(dto, mapper.ConfigurationProvider, ct);
+        }
+        public async Task<ErrorOr<Success>> AddComponentAsync(Guid supportRequestId, AddSupportRequestComponentDto dto, CancellationToken ct = default)
+        {
+            if (currentUser.UserId is not Guid userId)
+                return UserErrors.Unauthorized;
+
+            var userRole = await context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => (UserRole?)u.Role)
+                .FirstOrDefaultAsync(ct);
+
+            if (userRole == null)
+                return UserErrors.Unauthorized;
+
+            if (userRole != UserRole.Admin && userRole != UserRole.Technician)
+                return UserErrors.Forbidden;
+
+            await using var transaction = await context.Database
+                .BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+
+            // Блокируем строку заявки до завершения транзакции.
+            var supportRequest = await context.SupportRequests
+                .FromSqlInterpolated(
+                    $"SELECT * FROM support_requests WHERE id = {supportRequestId} FOR UPDATE")
+                .AsNoTracking()
+                .FirstOrDefaultAsync(ct);
+
+            if (supportRequest == null)
+                return SupportRequestErrors.SupportRequestNotFound;
+
+            if (userRole == UserRole.Technician && supportRequest.ExecutorId != userId)
+                return UserErrors.Forbidden;
+
+            if (supportRequest.Status == SupportRequestStatus.Resolved)
+                return SupportRequestErrors.ResolvedRequestCannotBeUpdated;
+
+            var consumption = await context.SupportRequestComponent
+                .FirstOrDefaultAsync(
+                    src => src.SupportRequestId == supportRequestId && src.ComponentId == dto.ComponentId, ct);
+
+            if (consumption != null && (long)consumption.Quantity + dto.Quantity > int.MaxValue)
+                return ComponentErrors.ConsumptionQuantityLimitExceeded;
+
+            // Проверяем остаток и уменьшаем его одной SQL-командой.
+            var updatedRows = await context.Components
+                .Where(c => c.Id == dto.ComponentId && c.Quantity >= dto.Quantity)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(
+                        c => c.Quantity,
+                        c => c.Quantity - dto.Quantity), ct);
+
+            if (updatedRows == 0)
+            {
+                var componentExists = await context.Components
+                    .AnyAsync(c => c.Id == dto.ComponentId, ct);
+
+                if (!componentExists)
+                    return ComponentErrors.NotFound;
+
+                return ComponentErrors.InsufficientStock;
+            }
+
+            if (consumption == null)
+            {
+                consumption = new SupportRequestComponent
+                {
+                    SupportRequestId = supportRequestId,
+                    ComponentId = dto.ComponentId,
+                    Quantity = dto.Quantity
+                };
+
+                context.SupportRequestComponent.Add(consumption);
+            }
+            else
+            {
+                consumption.Quantity += dto.Quantity;
+            }
+
+            await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+
+            return Result.Success;
+        }
+
+        public async Task<ErrorOr<PagedResultDto<SupportRequestComponentDto>>> GetComponentsAsync(Guid supportRequestId, PaginationQueryDto dto, CancellationToken ct = default)
+        {
+            if (currentUser.UserId is not Guid userId)
+                return UserErrors.Unauthorized;
+
+            var userRole = await context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => (UserRole?)u.Role)
+                .FirstOrDefaultAsync(ct);
+
+            if (userRole == null)
+                return UserErrors.Unauthorized;
+
+            var supportRequest = await context.SupportRequests
+                .Where(sr => sr.Id == supportRequestId)
+                .Select(sr => new { sr.ClientId })
+                .FirstOrDefaultAsync(ct);
+
+            if (supportRequest == null)
+                return SupportRequestErrors.SupportRequestNotFound;
+
+            if (userRole != UserRole.Admin && userRole != UserRole.Technician && supportRequest.ClientId != userId)
+                return UserErrors.Forbidden;
+
+            return await context.SupportRequestComponent
+                .Where(src => src.SupportRequestId == supportRequestId)
+                .OrderBy(src => src.Component!.Name)
+                .ThenBy(src => src.ComponentId)
+                .ToPagedResultAsync<SupportRequestComponent, SupportRequestComponentDto>(
+                    dto, mapper.ConfigurationProvider, ct);
         }
     }
 }
