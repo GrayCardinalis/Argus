@@ -15,9 +15,7 @@ namespace Argus.Services
 {
     public class ComponentService(AppDbContext context, IMapper mapper) : IComponentService
     {
-        public async Task<PagedResultDto<ComponentDto>> GetAllComponentAsync(
-            PaginationQueryDto dto,
-            CancellationToken ct = default)
+        public async Task<PagedResultDto<ComponentDto>> GetAllComponentAsync(PaginationQueryDto dto, CancellationToken ct = default)
         {
             return await context.Components
                 .OrderBy(c => c.Name)
@@ -44,15 +42,25 @@ namespace Argus.Services
 
             return mapper.Map<ComponentDto>(newComponent);
         }
-        public async Task<bool> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto updateComponentStockDto, CancellationToken ct = default)
+        public async Task<ErrorOr<Success>> AdjustComponentStockAsync(Guid id, AdjustComponentStockDto dto, CancellationToken ct = default)
         {
-            var existingComponent = await context.Components.FindAsync(id);
-            if (existingComponent is null)
-                return false;
+            var updatedRows = await context.Components
+                .Where(c => c.Id == id && c.Quantity == dto.ExpectedQuantity)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(
+                        c => c.Quantity,
+                        dto.ActualQuantity),ct);
 
-            mapper.Map(updateComponentStockDto, existingComponent);
-            await context.SaveChangesAsync(ct);
-            return true;
+            if (updatedRows > 0)
+                return Result.Success;
+
+            var componentExists = await context.Components
+                .AnyAsync(c => c.Id == id, ct);
+
+            if (!componentExists)
+                return ComponentErrors.NotFound;
+
+            return ComponentErrors.StockConflict;
         }
 
         public async Task<bool> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto, CancellationToken ct = default)

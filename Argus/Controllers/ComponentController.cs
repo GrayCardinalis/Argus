@@ -47,13 +47,15 @@ namespace Argus.Controllers
             return isUpdated ? NoContent() : NotFound($"Component with id {id} not found.");
         }
 
-        // SCENARIO 2: Rapid change in inventory levels
-        [Authorize(Roles = nameof(UserRole.Admin) + "," + nameof(UserRole.Technician))]
-        [HttpPut("{id:guid}/stock", Name = ComponentRoutes.UpdateComponentStock)]
-        public async Task<IActionResult> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto dto, CancellationToken ct)
+        [Authorize(Roles = nameof(UserRole.Admin))]
+        [HttpPut("{id:guid}/stock", Name = ComponentRoutes.AdjustComponentStock)]
+        public async Task<IActionResult> AdjustComponentStockAsync(Guid id, [FromBody] AdjustComponentStockDto dto, CancellationToken ct)
         {
-            var isUpdated = await componentService.UpdateComponentStockAsync(id, dto, ct);
-            return isUpdated ? NoContent() : NotFound($"Component with id {id} not found.");
+            var result = await componentService.AdjustComponentStockAsync(id, dto, ct);
+
+            return result.Match<IActionResult>(
+                success => NoContent(),
+                errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]

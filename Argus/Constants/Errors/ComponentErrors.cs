@@ -27,5 +27,9 @@ namespace Argus.Constants.Errors
             Error.Conflict(
                 code: "Component.ConsumptionQuantityLimitExceeded",
                 description: "The total consumed quantity exceeds the supported limit.");
+        public static readonly Error StockConflict =
+            Error.Conflict(
+                code: "Component.StockConflict",
+                description: "Stock has changed. Read the current quantity before adjusting it.");
     }
 }

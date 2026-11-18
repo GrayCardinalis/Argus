@@ -2,7 +2,6 @@
 using Argus.Dtos.Common;
 using Argus.Dtos.Components;
 using ErrorOr;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Argus.Services.Interfaces
 {
@@ -11,7 +10,7 @@ namespace Argus.Services.Interfaces
         Task<ComponentDto?> GetComponentByIdAsync(Guid id, CancellationToken ct = default);
         Task<ComponentDto> CreateComponentAsync(CreateComponentDto createComponentDto, CancellationToken ct = default);
         Task<bool> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto, CancellationToken ct = default);
-        Task<bool> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto updateComponentStockDto, CancellationToken ct = default);
+        Task<ErrorOr<Success>> AdjustComponentStockAsync(Guid id, AdjustComponentStockDto dto, CancellationToken ct = default);
         Task<ErrorOr<Success>> DeleteComponentAsync(Guid id, CancellationToken ct = default);
         Task<PagedResultDto<ComponentDto>> GetAllComponentAsync(PaginationQueryDto dto, CancellationToken ct = default);
     }
