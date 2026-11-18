@@ -32,9 +32,8 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> MoveEquipmentAsync(Guid equipmentId, MoveEquipmentDto dto, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == equipmentId, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+            var equipment = await context.LockEquipmentAsync(equipmentId, ct);
 
             if (equipment == null)
                 return PlacementHistoryErrors.EquipmentNotFound;
@@ -55,7 +54,11 @@ namespace Argus.Services
                 return PlacementHistoryErrors.AlreadyInLocation;
 
             if (currentPlacement != null)
+            {
                 currentPlacement.RemovedAt = DateTimeOffset.UtcNow;
+                // Release the partial unique index entry before inserting the new placement.
+                await context.SaveChangesAsync(ct);
+            }
 
             var newPlacementHistory = new PlacementHistory
             {
@@ -66,6 +69,7 @@ namespace Argus.Services
             context.PlacementHistories.Add(newPlacementHistory);
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
         }

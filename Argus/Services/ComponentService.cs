@@ -15,7 +15,7 @@ namespace Argus.Services
 {
     public class ComponentService(AppDbContext context, IMapper mapper) : IComponentService
     {
-        public async Task<PagedResultDto<ComponentDto>> GetAllComponentAsync(
+        public async Task<ErrorOr<PagedResultDto<ComponentDto>>> GetAllComponentAsync(
             PaginationQueryDto dto,
             CancellationToken ct = default)
         {
@@ -25,16 +25,21 @@ namespace Argus.Services
                 .ToPagedResultAsync<Component, ComponentDto>(dto, mapper.ConfigurationProvider, ct);
         }
 
-        public async Task<ComponentDto?> GetComponentByIdAsync(Guid id, CancellationToken ct = default)
+        public async Task<ErrorOr<ComponentDto>> GetComponentByIdAsync(Guid id, CancellationToken ct = default)
         {
-            return await context.Components
+            var item = await context.Components
                 .AsNoTracking()
                 .Where(c => c.Id == id)
-                .ProjectTo<ComponentDto?>(mapper.ConfigurationProvider)
+                .ProjectTo<ComponentDto>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(ct);
+
+            if (item is null)
+                return ComponentErrors.NotFound;
+
+            return item;
         }
 
-        public async Task<ComponentDto> CreateComponentAsync(CreateComponentDto createComponentDto, CancellationToken ct = default)
+        public async Task<ErrorOr<ComponentDto>> CreateComponentAsync(CreateComponentDto createComponentDto, CancellationToken ct = default)
         {
             var newComponent = mapper.Map<Component>(createComponentDto);
 
@@ -44,25 +49,28 @@ namespace Argus.Services
 
             return mapper.Map<ComponentDto>(newComponent);
         }
-        public async Task<bool> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto updateComponentStockDto, CancellationToken ct = default)
+        public async Task<ErrorOr<Success>> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto updateComponentStockDto, CancellationToken ct = default)
         {
-            var existingComponent = await context.Components.FindAsync(id);
-            if (existingComponent is null)
-                return false;
+            var updatedRows = await context.Components
+                .Where(c => c.Id == id && c.Quantity == updateComponentStockDto.ExpectedQuantity)
+                .ExecuteUpdateAsync(update => update.SetProperty(c => c.Quantity, updateComponentStockDto.Quantity), ct);
 
-            mapper.Map(updateComponentStockDto, existingComponent);
-            await context.SaveChangesAsync(ct);
-            return true;
+            if (updatedRows > 0)
+                return Result.Success;
+
+            return await context.Components.AnyAsync(c => c.Id == id, ct)
+                ? ComponentErrors.StockConflict
+                : ComponentErrors.NotFound;
         }
 
-        public async Task<bool> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto, CancellationToken ct = default)
+        public async Task<ErrorOr<Success>> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto, CancellationToken ct = default)
         {
-            var existingComponent = await context.Components.FindAsync(id);
+            var existingComponent = await context.Components.FirstOrDefaultAsync(c => c.Id == id, ct);
             if (existingComponent is null)
-                return false;
+                return ComponentErrors.NotFound;
             mapper.Map(updateComponentNameDto, existingComponent);
             await context.SaveChangesAsync(ct);
-            return true;
+            return Result.Success;
         }
 
         public async Task<ErrorOr<Success>> DeleteComponentAsync(Guid id, CancellationToken ct = default)

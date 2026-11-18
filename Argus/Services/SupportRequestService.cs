@@ -1,5 +1,4 @@
-﻿using Argus.Constants.Database;
-using Argus.Constants.Errors;
+﻿using Argus.Constants.Errors;
 using Argus.Data;
 using Argus.Dtos.SupportRequest;
 using Argus.Enums;
@@ -27,15 +26,14 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid clientId)
                 return UserErrors.Unauthorized;
 
-            var clientExists = await context.Users
+            var clientExists = await context.ActiveUsers
                 .AnyAsync(u => u.Id == clientId, ct);
 
             if (!clientExists)
                 return UserErrors.Unauthorized;
 
-            var equipment = await context.Equipments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == dto.EquipmentId, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+            var equipment = await context.LockEquipmentAsync(dto.EquipmentId, ct);
 
             if (equipment == null)
                 return EquipmentErrors.NotFound;
@@ -64,12 +62,14 @@ namespace Argus.Services
 
             await context.SaveChangesAsync(ct);
 
-            return await context.SupportRequests
+            var detail = await context.SupportRequests
                 .AsNoTracking()
-                .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
                 .Where(sr => sr.Id == newSupportRequest.Id)
                 .ProjectTo<SupportRequestDetailDto>(mapper.ConfigurationProvider)
                 .SingleAsync(ct);
+
+            await transaction.CommitAsync(ct);
+            return detail;
         }
 
         public async Task<ErrorOr<SupportRequestDetailDto>> GetSupportRequestByIdAsync(Guid supportRequestId, CancellationToken ct = default)
@@ -77,33 +77,24 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var user = await context.Users
+            var user = await context.ActiveUsers
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
             if (user == null)
                 return UserErrors.Unauthorized;
 
-            var query = context.SupportRequests
-                .AsNoTracking()
-                .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
-                .Where(sr => sr.Id == supportRequestId);
-
-            if (user.Role == UserRole.Client)
-            {
-                query = query.Where(sr => sr.ClientId == userId);
-            }
-            else if (user.Role != UserRole.Technician && user.Role != UserRole.Admin)
-            {
-                return UserErrors.Forbidden;
-            }
-
-            var supportRequest = await query
+            var supportRequest = await context.SupportRequests
+                .Where(sr => sr.Id == supportRequestId)
                 .ProjectTo<SupportRequestDetailDto>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(ct);
 
             if (supportRequest == null)
                 return SupportRequestErrors.SupportRequestNotFound;
+
+            if (user.Role != UserRole.Admin && user.Role != UserRole.Technician &&
+                supportRequest.Client.Id != userId)
+                return UserErrors.Forbidden;
 
             return supportRequest;
         }
@@ -112,7 +103,7 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var user = await context.Users
+            var user = await context.ActiveUsers
                 .Where(u => u.Id == userId)
                 .Select(u => new {u.Role})
                 .FirstOrDefaultAsync(ct);
@@ -140,7 +131,7 @@ namespace Argus.Services
             if (user.Role == UserRole.Technician && supportRequest.ExecutorId is Guid assignedExecutorId && assignedExecutorId != userId)
                 return SupportRequestErrors.AssignmentForbidden;
 
-            var executor = await context.Users
+            var executor = await context.ActiveUsers
                 .Where(u => u.Id == dto.ExecutorId)
                 .Select(u => new 
                 { 
@@ -179,7 +170,7 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var userRole = await context.Users
+            var userRole = await context.ActiveUsers
                 .Where(u => u.Id == userId)
                 .Select(u => (UserRole?)u.Role)
                 .FirstOrDefaultAsync(ct);
@@ -240,7 +231,7 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var userRole = await context.Users
+            var userRole = await context.ActiveUsers
                 .Where(u => u.Id == userId)
                 .Select(u => (UserRole?)u.Role)
                 .FirstOrDefaultAsync(ct);
@@ -285,7 +276,7 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var user = await context.Users
+            var user = await context.ActiveUsers
                 .Where(u => u.Id == userId)
                 .Select(u => new
                 {
@@ -334,7 +325,7 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var userRole = await context.Users
+            var userRole = await context.ActiveUsers
                 .Where(u => u.Id == userId)
                 .Select(u => (UserRole?)u.Role)
                 .FirstOrDefaultAsync(ct);
@@ -354,7 +345,6 @@ namespace Argus.Services
                 return UserErrors.Forbidden;
 
             return await context.SupportRequestComments
-                .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
                 .Where(comment => comment.SupportRequestId == supportRequestId)
                 .OrderBy(comment => comment.CreatedAt)
                 .ThenBy(comment => comment.Id)
@@ -365,7 +355,7 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var userRole = await context.Users
+            var userRole = await context.ActiveUsers
                 .Where(u => u.Id == userId)
                 .Select(u => (UserRole?)u.Role)
                 .FirstOrDefaultAsync(ct);
@@ -448,7 +438,7 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var userRole = await context.Users
+            var userRole = await context.ActiveUsers
                 .Where(u => u.Id == userId)
                 .Select(u => (UserRole?)u.Role)
                 .FirstOrDefaultAsync(ct);

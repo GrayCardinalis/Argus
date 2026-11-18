@@ -75,7 +75,8 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> UpdateEquipmentStatusAsync(Guid id, UpdateEquipmentStatusDto dto, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+            var equipment = await context.LockEquipmentAsync(id, ct);
 
             if (equipment == null)
                 return EquipmentErrors.NotFound;
@@ -98,12 +99,14 @@ namespace Argus.Services
             }
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
         }
         public async Task<ErrorOr<Success>> UpdateEquipmentAsync(Guid id, UpdateEquipmentDto dto, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+            var equipment = await context.LockEquipmentAsync(id, ct);
 
             if(equipment == null)
                 return EquipmentErrors.NotFound;
@@ -118,12 +121,14 @@ namespace Argus.Services
                 : dto.IpAddress.Trim();
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
         }
         public async Task<ErrorOr<Success>> DeleteEquipmentAsync(Guid id, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+            var equipment = await context.LockEquipmentAsync(id, ct);
 
             if (equipment == null)
                 return EquipmentErrors.NotFound;
@@ -138,25 +143,9 @@ namespace Argus.Services
                 activePlacement.RemovedAt = DateTimeOffset.UtcNow;
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
-        }
-
-        public async Task<ErrorOr<List<EquipmentListDto>>> GetEquipmentByAuditoriumAsync(Guid auditoriumId, CancellationToken ct = default)
-        {
-            var auditorium = await context.Auditoriums.AnyAsync(a => a.Id == auditoriumId, ct);
-            
-            if (!auditorium)
-                return EquipmentErrors.AuditoriumNotFound;
-
-            var equipments = await context.PlacementHistories
-                .AsNoTracking()
-                .Where(ph => ph.AuditoriumId == auditoriumId && ph.RemovedAt == null)
-                .Select(ph=>ph.Equipment!)
-                .ProjectTo<EquipmentListDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
-
-            return equipments;
         }
     }
 }

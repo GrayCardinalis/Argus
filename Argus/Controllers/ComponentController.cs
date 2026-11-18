@@ -17,25 +17,24 @@ namespace Argus.Controllers
         public async Task<ActionResult<PagedResultDto<ComponentDto>>> GetAllComponentAsync([FromQuery] PaginationQueryDto dto, CancellationToken ct)
         {
             var result = await componentService.GetAllComponentAsync(dto, ct);
-            return Ok(result);
+            return result.Match<ActionResult<PagedResultDto<ComponentDto>>>(page => Ok(page), errors => Problem(errors));
         }
 
         [HttpGet("{id}", Name = ComponentRoutes.GetComponentById)]
-        public async Task<ActionResult<ComponentDto?>> GetComponentByIdAsync(Guid id, CancellationToken ct)
+        public async Task<ActionResult<ComponentDto>> GetComponentByIdAsync(Guid id, CancellationToken ct)
         {
-            var component = await componentService.GetComponentByIdAsync(id, ct);
-            return component is null
-                ? NotFound($"Component with id {id} not found.")
-                : Ok(component);
+            var result = await componentService.GetComponentByIdAsync(id, ct);
+            return result.Match<ActionResult<ComponentDto>>(item => Ok(item), errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPost(Name = ComponentRoutes.CreateComponent)]
         public async Task<ActionResult<ComponentDto>> CreateComponentAsync(CreateComponentDto createComponentDto, CancellationToken ct)
         {
-            var createdComponent = await componentService.CreateComponentAsync(createComponentDto, ct);
-
-            return CreatedAtRoute(ComponentRoutes.GetComponentById, new {id = createdComponent.Id}, createdComponent);
+            var result = await componentService.CreateComponentAsync(createComponentDto, ct);
+            return result.Match<ActionResult<ComponentDto>>(
+                item => CreatedAtRoute(ComponentRoutes.GetComponentById, new { id = item.Id }, item),
+                errors => Problem(errors));
         }
 
         // SCENARIO 1: Full editing of the product card (Admin)
@@ -43,8 +42,8 @@ namespace Argus.Controllers
         [HttpPut("{id:guid}/name", Name = ComponentRoutes.UpdateComponentName)]
         public async Task<IActionResult> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto dto, CancellationToken ct)
         {
-            var isUpdated = await componentService.UpdateComponentNameAsync(id, dto, ct);
-            return isUpdated ? NoContent() : NotFound($"Component with id {id} not found.");
+            var result = await componentService.UpdateComponentNameAsync(id, dto, ct);
+            return result.Match<IActionResult>(_ => NoContent(), errors => Problem(errors));
         }
 
         // SCENARIO 2: Rapid change in inventory levels
@@ -52,8 +51,8 @@ namespace Argus.Controllers
         [HttpPut("{id:guid}/stock", Name = ComponentRoutes.UpdateComponentStock)]
         public async Task<IActionResult> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto dto, CancellationToken ct)
         {
-            var isUpdated = await componentService.UpdateComponentStockAsync(id, dto, ct);
-            return isUpdated ? NoContent() : NotFound($"Component with id {id} not found.");
+            var result = await componentService.UpdateComponentStockAsync(id, dto, ct);
+            return result.Match<IActionResult>(_ => NoContent(), errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]

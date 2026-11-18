@@ -16,7 +16,7 @@ namespace Argus.Controllers
         public async Task<ActionResult<PagedResultDto<AuditoriumDto>>> GetAllAuditoriums([FromQuery] PaginationQueryDto dto, CancellationToken ct)
         {
             var result = await auditoriumService.GetAllAuditoriumsAsync(dto, ct);
-            return Ok(result);
+            return result.Match<ActionResult<PagedResultDto<AuditoriumDto>>>(page => Ok(page), errors => Problem(errors));
         }
 
         [HttpGet("{id:guid}/equipment", Name = AuditoriumRoutes.GetEquipmentByAuditorium)]
@@ -32,18 +32,18 @@ namespace Argus.Controllers
         [HttpGet("{id}", Name = AuditoriumRoutes.GetAuditoriumById)]
         public async Task<ActionResult<AuditoriumDto>> GetAuditoriumByIdAsync(Guid id, CancellationToken ct)
         {
-            var auditorium = await auditoriumService.GetAuditoriumByIdAsync(id, ct);
-            return auditorium is null 
-                ? NotFound($"Auditorium with ID: {id} not found")
-                : Ok(auditorium);
+            var result = await auditoriumService.GetAuditoriumByIdAsync(id, ct);
+            return result.Match<ActionResult<AuditoriumDto>>(item => Ok(item), errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPost(Name = AuditoriumRoutes.CreateAuditorium)]
         public async Task<ActionResult<AuditoriumDto>> CreateAuditoriumAsync(CreateAuditoriumDto createdAuditoriumDto, CancellationToken ct)
         {
-            var createdAuditorium = await auditoriumService.CreateAuditoriumAsync(createdAuditoriumDto, ct);
-            return CreatedAtRoute(AuditoriumRoutes.GetAuditoriumById, new { id = createdAuditorium.Id }, createdAuditorium);
+            var result = await auditoriumService.CreateAuditoriumAsync(createdAuditoriumDto, ct);
+            return result.Match<ActionResult<AuditoriumDto>>(
+                item => CreatedAtRoute(AuditoriumRoutes.GetAuditoriumById, new { id = item.Id }, item),
+                errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]

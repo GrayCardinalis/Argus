@@ -9,7 +9,7 @@ namespace Argus.Data
     public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserProvider currentUser) : DbContext(options)
     {
         #region 1. Directories (Independent entities)
-        public DbSet<User> Users => Set<User>();
+        public IQueryable<User> ActiveUsers => Set<User>().Where(user => !user.IsDeleted);
         public DbSet<Auditorium> Auditoriums => Set<Auditorium>();
         public DbSet<Component> Components => Set<Component>();
         public DbSet<Equipment> Equipments => Set<Equipment>();
@@ -24,6 +24,11 @@ namespace Argus.Data
         public DbSet<SupportRequestComment> SupportRequestComments => Set<SupportRequestComment>();
         public DbSet<SupportRequestComponent> SupportRequestComponent => Set<SupportRequestComponent>();
         #endregion
+
+        // Call inside a transaction shared by all operations that depend on equipment state.
+        public Task<Equipment?> LockEquipmentAsync(Guid id, CancellationToken ct) =>
+            Equipments.FromSqlInterpolated($"SELECT * FROM equipments WHERE id = {id} FOR UPDATE")
+                .SingleOrDefaultAsync(ct);
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

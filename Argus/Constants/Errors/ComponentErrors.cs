@@ -14,6 +14,9 @@ namespace Argus.Constants.Errors
                 code: "Component.InUse",
                 description: "The component cannot be deleted because it is referenced by support requests.");
 
+        public static readonly Error StockConflict =
+            Error.Conflict("Component.StockConflict", "Stock has changed. Read the current quantity and retry.");
+
         public static readonly Error NonZeroStock =
             Error.Conflict(
                 code: "Component.NonZeroStock",

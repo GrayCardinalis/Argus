@@ -8,11 +8,11 @@ namespace Argus.Services.Interfaces
 {
     public interface IComponentService
     {
-        Task<ComponentDto?> GetComponentByIdAsync(Guid id, CancellationToken ct = default);
-        Task<ComponentDto> CreateComponentAsync(CreateComponentDto createComponentDto, CancellationToken ct = default);
-        Task<bool> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto, CancellationToken ct = default);
-        Task<bool> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto updateComponentStockDto, CancellationToken ct = default);
+        Task<ErrorOr<ComponentDto>> GetComponentByIdAsync(Guid id, CancellationToken ct = default);
+        Task<ErrorOr<ComponentDto>> CreateComponentAsync(CreateComponentDto createComponentDto, CancellationToken ct = default);
+        Task<ErrorOr<Success>> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto, CancellationToken ct = default);
+        Task<ErrorOr<Success>> UpdateComponentStockAsync(Guid id, UpdateComponentStockDto updateComponentStockDto, CancellationToken ct = default);
         Task<ErrorOr<Success>> DeleteComponentAsync(Guid id, CancellationToken ct = default);
-        Task<PagedResultDto<ComponentDto>> GetAllComponentAsync(PaginationQueryDto dto, CancellationToken ct = default);
+        Task<ErrorOr<PagedResultDto<ComponentDto>>> GetAllComponentAsync(PaginationQueryDto dto, CancellationToken ct = default);
     }
 }

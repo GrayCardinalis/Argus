@@ -20,14 +20,14 @@ namespace Argus.Services
     {
         public async Task<ErrorOr<PagedResultDto<UserDto>>> GetAllUsersAsync(PaginationQueryDto dto,CancellationToken ct = default)
         {
-            return await context.Users
+            return await context.ActiveUsers
                 .OrderBy(u => u.FullName)
                 .ThenBy(u => u.Id)
                 .ToPagedResultAsync<User, UserDto>(dto, mapper.ConfigurationProvider,ct);
         }
         public async Task<ErrorOr<UserDto>> GetUserByNameAsync(string userName, CancellationToken ct = default)
         {
-            var user = await context.Users
+            var user = await context.ActiveUsers
                 .AsNoTracking()
                 .Where(u => u.UserName == userName)
                 .ProjectTo<UserDto?>(mapper.ConfigurationProvider)
@@ -40,7 +40,7 @@ namespace Argus.Services
         }
         public async Task<ErrorOr<UserDto>> GetUserByIdAsync(Guid id, CancellationToken ct = default)
         {
-            var user = await context.Users
+            var user = await context.ActiveUsers
                 .AsNoTracking()
                 .Where(u => u.Id == id)
                 .ProjectTo<UserDto?>(mapper.ConfigurationProvider)
@@ -55,7 +55,7 @@ namespace Argus.Services
 
         public async Task<ErrorOr<UserDto>> CreateUserAsync(CreateUserDto dto, CancellationToken ct = default)
         {
-            var isUserExists = await context.Users
+            var isUserExists = await context.ActiveUsers
                 //Protection from dublicates. Check if the UserName or Name is busy
                 .AnyAsync(u=>u.UserName == dto.UserName || u.Email == dto.Email, ct);
 
@@ -74,7 +74,7 @@ namespace Argus.Services
                 : dto.Department.Trim();
 
             //Saving to the Database
-            context.Users.Add(newUser);
+            context.Add(newUser);
 
             await context.SaveChangesAsync(ct);
 
@@ -87,7 +87,7 @@ namespace Argus.Services
             if (id != currentUser.UserId)
                 return UserErrors.Forbidden;
 
-            var user = await context.Users
+            var user = await context.ActiveUsers
                 .Where(u=>u.Id == id)
                 .FirstOrDefaultAsync(ct);
 
@@ -113,12 +113,12 @@ namespace Argus.Services
             if (id != currentUser.UserId && currentUser.Role != UserRole.Admin)
                 return UserErrors.Forbidden;
 
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
+            var user = await context.ActiveUsers.FirstOrDefaultAsync(u => u.Id == id, ct);
 
             if (user is null)
                 return UserErrors.NotFound;
 
-            var conflictingUser = await context.Users
+            var conflictingUser = await context.ActiveUsers
                 .Where(u => u.Id != id && (u.UserName == dto.UserName || u.Email == dto.Email))
                 .Select(u => new { u.UserName, u.Email })
                 .FirstOrDefaultAsync(ct);
@@ -143,12 +143,12 @@ namespace Argus.Services
             if (id == currentUser.UserId) 
                 return UserErrors.CannotDeleteSelf;
 
-            var user = await context.Users.FirstOrDefaultAsync(u=>u.Id == id, ct);
+            var user = await context.ActiveUsers.FirstOrDefaultAsync(u=>u.Id == id, ct);
 
             if(user is null)
                 return UserErrors.NotFound;
 
-            context.Users.Remove(user);
+            context.Remove(user);
 
             await context.SaveChangesAsync(ct); // When this method is called, the overridden method will be executed.
 
@@ -156,7 +156,7 @@ namespace Argus.Services
         }
         public async Task<ErrorOr<LoginResponseDto>> LoginAsync(string userName, string password, CancellationToken ct = default)
         {
-            var user = await context.Users
+            var user = await context.ActiveUsers
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserName == userName, ct);
 

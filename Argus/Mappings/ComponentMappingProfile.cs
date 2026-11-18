@@ -10,7 +10,6 @@ namespace Argus.Mappings
         {
             CreateMap<Component, ComponentDto>();
             CreateMap<CreateComponentDto, Component>();
-            CreateMap<UpdateComponentStockDto, Component>();
             CreateMap<UpdateComponentNameDto, Component>();
         }
     }

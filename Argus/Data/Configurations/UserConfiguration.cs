@@ -9,7 +9,7 @@ namespace Argus.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            //builder.ToTable("User");
+            builder.ToTable("users");
             builder.HasKey(u => u.Id);
 
             builder.Property(u=>u.FullName)
@@ -41,8 +41,6 @@ namespace Argus.Data.Configurations
                 .HasConversion<string>() // Store the enum as a string in the database
                 .HasMaxLength(UserFieldLengths.RoleMax)
                 .IsRequired();
-
-            builder.HasQueryFilter(QueryFilterNames.UserSoftDelete, u => !u.IsDeleted); // Global query filter to exclude deleted users
 
             builder.Property(u => u.IsDeleted)
                 .HasDefaultValue(false);

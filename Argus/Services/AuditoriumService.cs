@@ -15,7 +15,7 @@ namespace Argus.Services
 {
     public class AuditoriumService(AppDbContext context, IMapper mapper) : IAuditoriumService
     {
-        public async Task<PagedResultDto<AuditoriumDto>> GetAllAuditoriumsAsync(PaginationQueryDto dto, CancellationToken ct = default)
+        public async Task<ErrorOr<PagedResultDto<AuditoriumDto>>> GetAllAuditoriumsAsync(PaginationQueryDto dto, CancellationToken ct = default)
         {
             return await context.Auditoriums
                 .OrderBy(a => a.BuildingNumber)
@@ -24,17 +24,22 @@ namespace Argus.Services
                 .ToPagedResultAsync<Auditorium, AuditoriumDto>(dto, mapper.ConfigurationProvider, ct);
         }
 
-        public async Task<AuditoriumDto?> GetAuditoriumByIdAsync(Guid id, CancellationToken ct = default)
+        public async Task<ErrorOr<AuditoriumDto>> GetAuditoriumByIdAsync(Guid id, CancellationToken ct = default)
         {
-            return await context.Auditoriums
+            var item = await context.Auditoriums
                 .AsNoTracking()
                 .Where(a => a.Id == id)
                 .ProjectTo<AuditoriumDto>( mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(ct);
+
+            if (item is null)
+                return AuditoriumErrors.NotFound;
+
+            return item;
         }
 
 
-        public async Task<AuditoriumDto> CreateAuditoriumAsync(CreateAuditoriumDto createAuditoriumDto, CancellationToken ct = default)
+        public async Task<ErrorOr<AuditoriumDto>> CreateAuditoriumAsync(CreateAuditoriumDto createAuditoriumDto, CancellationToken ct = default)
         {
             var newAuditorium = mapper.Map<Auditorium>(createAuditoriumDto);
             

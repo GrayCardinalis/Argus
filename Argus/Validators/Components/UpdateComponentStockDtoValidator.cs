@@ -9,6 +9,7 @@ namespace Argus.Validators.Components
         {
             RuleLevelCascadeMode = CascadeMode.Stop;
 
+            RuleFor(c => c.ExpectedQuantity).GreaterThanOrEqualTo(0);
             RuleFor(c => c.Quantity)
                 .GreaterThanOrEqualTo(0);
         }
