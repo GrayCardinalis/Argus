@@ -8,5 +8,6 @@
         public const string UpdateComponentName = nameof(UpdateComponentName);
         public const string AdjustComponentStock = nameof(AdjustComponentStock);
         public const string DeleteComponent = nameof(DeleteComponent);
+        public const string ReceiveComponentStock = nameof(ReceiveComponentStock);
     }
 }

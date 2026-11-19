@@ -31,5 +31,9 @@ namespace Argus.Constants.Errors
             Error.Conflict(
                 code: "Component.StockConflict",
                 description: "Stock has changed. Read the current quantity before adjusting it.");
+        public static readonly Error StockQuantityLimitExceeded =
+            Error.Conflict(
+                code: "Component.StockQuantityLimitExceeded",
+                description: "The resulting stock quantity exceeds the supported limit.");
     }
 }

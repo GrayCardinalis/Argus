@@ -35,7 +35,7 @@ namespace Argus.Controllers
         {
             var createdComponent = await componentService.CreateComponentAsync(createComponentDto, ct);
 
-            return CreatedAtRoute(ComponentRoutes.GetComponentById, new {id = createdComponent.Id}, createdComponent);
+            return CreatedAtRoute(ComponentRoutes.GetComponentById, new { id = createdComponent.Id }, createdComponent);
         }
 
         // SCENARIO 1: Full editing of the product card (Admin)
@@ -52,6 +52,17 @@ namespace Argus.Controllers
         public async Task<IActionResult> AdjustComponentStockAsync(Guid id, [FromBody] AdjustComponentStockDto dto, CancellationToken ct)
         {
             var result = await componentService.AdjustComponentStockAsync(id, dto, ct);
+
+            return result.Match<IActionResult>(
+                success => NoContent(),
+                errors => Problem(errors));
+        }
+
+        [Authorize(Roles = $"{nameof(UserRole.Admin)},{nameof(UserRole.Technician)}")]
+        [HttpPost("{id:guid}/receipts", Name = ComponentRoutes.ReceiveComponentStock)]
+        public async Task<IActionResult> ReceiveComponentStockAsync(Guid id, [FromBody] ReceiveComponentStockDto dto, CancellationToken ct)
+        {
+            var result = await componentService.ReceiveComponentStockAsync(id, dto, ct);
 
             return result.Match<IActionResult>(
                 success => NoContent(),

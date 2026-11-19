@@ -13,5 +13,6 @@ namespace Argus.Services.Interfaces
         Task<ErrorOr<Success>> AdjustComponentStockAsync(Guid id, AdjustComponentStockDto dto, CancellationToken ct = default);
         Task<ErrorOr<Success>> DeleteComponentAsync(Guid id, CancellationToken ct = default);
         Task<PagedResultDto<ComponentDto>> GetAllComponentAsync(PaginationQueryDto dto, CancellationToken ct = default);
+        Task<ErrorOr<Success>> ReceiveComponentStockAsync(Guid id, ReceiveComponentStockDto dto, CancellationToken ct = default);
     }
 }

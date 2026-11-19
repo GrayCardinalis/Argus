@@ -63,6 +63,27 @@ namespace Argus.Services
             return ComponentErrors.StockConflict;
         }
 
+        public async Task<ErrorOr<Success>> ReceiveComponentStockAsync(Guid id, ReceiveComponentStockDto dto, CancellationToken ct = default)
+        {
+            var maxCurrentQuantity = int.MaxValue - dto.Quantity;
+
+            var updatedRows = await context.Components
+                .Where(c => c.Id == id && c.Quantity <= maxCurrentQuantity)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(c => c.Quantity, c => c.Quantity + dto.Quantity), ct);
+
+            if (updatedRows > 0)
+                return Result.Success;
+
+            var componentExists = await context.Components
+                .AnyAsync(c => c.Id == id, ct);
+
+            if (!componentExists)
+                return ComponentErrors.NotFound;
+
+            return ComponentErrors.StockQuantityLimitExceeded;
+        }
+
         public async Task<bool> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto updateComponentNameDto, CancellationToken ct = default)
         {
             var existingComponent = await context.Components.FindAsync(id);
