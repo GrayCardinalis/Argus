@@ -44,8 +44,7 @@ namespace Argus.Services
                 return EquipmentErrors.AuditoriumNotFound;
 
             return await context.PlacementHistories
-                .Where(ph => ph.AuditoriumId == auditoriumId &&
-                             ph.RemovedAt == null)
+                .Where(ph => ph.AuditoriumId == auditoriumId && ph.RemovedAt == null)
                 .Select(ph => ph.Equipment!)
                 .OrderBy(e => e.InventoryNumber)
                 .ThenBy(e => e.Id)
@@ -140,23 +139,6 @@ namespace Argus.Services
             await context.SaveChangesAsync(ct);
 
             return Result.Success;
-        }
-
-        public async Task<ErrorOr<List<EquipmentListDto>>> GetEquipmentByAuditoriumAsync(Guid auditoriumId, CancellationToken ct = default)
-        {
-            var auditorium = await context.Auditoriums.AnyAsync(a => a.Id == auditoriumId, ct);
-            
-            if (!auditorium)
-                return EquipmentErrors.AuditoriumNotFound;
-
-            var equipments = await context.PlacementHistories
-                .AsNoTracking()
-                .Where(ph => ph.AuditoriumId == auditoriumId && ph.RemovedAt == null)
-                .Select(ph=>ph.Equipment!)
-                .ProjectTo<EquipmentListDto>(mapper.ConfigurationProvider)
-                .ToListAsync(ct);
-
-            return equipments;
         }
     }
 }
