@@ -32,40 +32,47 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> MoveEquipmentAsync(Guid equipmentId, MoveEquipmentDto dto, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == equipmentId, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-            if (equipment == null)
+            var equipment = await context.GetEquipmentForUpdateAsync(equipmentId, ct);
+
+            if (equipment is null)
                 return PlacementHistoryErrors.EquipmentNotFound;
 
             if (equipment.Status == EquipmentStatus.Recycled)
                 return PlacementHistoryErrors.EquipmentRecycled;
 
-            var auditoriumExists = await context.Auditoriums.AnyAsync(a => a.Id == dto.NewLocationId, ct);
+            var auditoriumExists = await context.Auditoriums
+                .AnyAsync(a => a.Id == dto.NewLocationId, ct);
 
             if (!auditoriumExists)
                 return PlacementHistoryErrors.AuditoriumNotFound;
 
             var currentPlacement = await context.PlacementHistories
-                .Where(ph => ph.EquipmentId == equipmentId && ph.RemovedAt == null)
-                .SingleOrDefaultAsync(ct);
+                .SingleOrDefaultAsync(ph => ph.EquipmentId == equipmentId && ph.RemovedAt == null, ct);
 
-            if(currentPlacement!=null && currentPlacement.AuditoriumId == dto.NewLocationId)
+            if (currentPlacement?.AuditoriumId == dto.NewLocationId)
                 return PlacementHistoryErrors.AlreadyInLocation;
 
-            if (currentPlacement != null)
-                currentPlacement.RemovedAt = DateTimeOffset.UtcNow;
+            var movedAt = DateTimeOffset.UtcNow;
 
-            var newPlacementHistory = new PlacementHistory
+            if (currentPlacement is not null)
+            {
+                currentPlacement.RemovedAt = movedAt;
+                await context.SaveChangesAsync(ct);
+            }
+
+            var newPlacement = new PlacementHistory
             {
                 EquipmentId = equipmentId,
-                AuditoriumId = dto.NewLocationId
+                AuditoriumId = dto.NewLocationId,
+                InstalledAt = movedAt
             };
 
-            context.PlacementHistories.Add(newPlacementHistory);
+            context.PlacementHistories.Add(newPlacement);
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
         }

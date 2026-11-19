@@ -74,7 +74,9 @@ namespace Argus.Services
 
         public async Task<ErrorOr<Success>> UpdateEquipmentStatusAsync(Guid id, UpdateEquipmentStatusDto dto, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+
+            var equipment = await context.GetEquipmentForUpdateAsync(id, ct);
 
             if (equipment == null)
                 return EquipmentErrors.NotFound;
@@ -97,14 +99,17 @@ namespace Argus.Services
             }
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
         }
         public async Task<ErrorOr<Success>> UpdateEquipmentAsync(Guid id, UpdateEquipmentDto dto, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
 
-            if(equipment == null)
+            var equipment = await context.GetEquipmentForUpdateAsync(id, ct);   
+
+            if (equipment == null)
                 return EquipmentErrors.NotFound;
 
             if(equipment.Status == EquipmentStatus.Recycled)
@@ -117,12 +122,15 @@ namespace Argus.Services
                 : dto.IpAddress.Trim();
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
         }
         public async Task<ErrorOr<Success>> DeleteEquipmentAsync(Guid id, CancellationToken ct = default)
         {
-            var equipment = await context.Equipments.FirstOrDefaultAsync(e => e.Id == id, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+
+            var equipment = await context.GetEquipmentForUpdateAsync(id, ct);
 
             if (equipment == null)
                 return EquipmentErrors.NotFound;
@@ -137,6 +145,7 @@ namespace Argus.Services
                 activePlacement.RemovedAt = DateTimeOffset.UtcNow;
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return Result.Success;
         }

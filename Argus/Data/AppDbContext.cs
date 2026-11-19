@@ -25,6 +25,13 @@ namespace Argus.Data
         public DbSet<SupportRequestComponent> SupportRequestComponent => Set<SupportRequestComponent>();
         #endregion
 
+        public Task<Equipment?> GetEquipmentForUpdateAsync(Guid equipmentId, CancellationToken ct = default)
+        {
+            return Equipments
+                .FromSqlInterpolated($"SELECT * FROM equipments WHERE id = {equipmentId} FOR UPDATE")
+                .SingleOrDefaultAsync(ct);
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -33,9 +33,9 @@ namespace Argus.Services
             if (!clientExists)
                 return UserErrors.Unauthorized;
 
-            var equipment = await context.Equipments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == dto.EquipmentId, ct);
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+
+            var equipment = await context.GetEquipmentForUpdateAsync(dto.EquipmentId, ct);
 
             if (equipment == null)
                 return EquipmentErrors.NotFound;
@@ -57,12 +57,10 @@ namespace Argus.Services
             newSupportRequest.ClientId = clientId;
             newSupportRequest.AuditoriumId = currentPlacement.AuditoriumId;
 
-            // Status, CreatedAt, ExecutorId и ResolvedAt
-            // получают начальные значения из модели SupportRequest.
-
             context.SupportRequests.Add(newSupportRequest);
 
             await context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             return await context.SupportRequests
                 .AsNoTracking()
