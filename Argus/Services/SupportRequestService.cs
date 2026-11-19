@@ -77,33 +77,25 @@ namespace Argus.Services
             if (currentUser.UserId is not Guid userId)
                 return UserErrors.Unauthorized;
 
-            var user = await context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == userId, ct);
+            var userRole = await context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => (UserRole?)u.Role)
+                .FirstOrDefaultAsync(ct);
 
-            if (user == null)
+            if (userRole == null)
                 return UserErrors.Unauthorized;
 
-            var query = context.SupportRequests
-                .AsNoTracking()
+            var supportRequest = await context.SupportRequests
                 .IgnoreQueryFilters([QueryFilterNames.UserSoftDelete])
-                .Where(sr => sr.Id == supportRequestId);
-
-            if (user.Role == UserRole.Client)
-            {
-                query = query.Where(sr => sr.ClientId == userId);
-            }
-            else if (user.Role != UserRole.Technician && user.Role != UserRole.Admin)
-            {
-                return UserErrors.Forbidden;
-            }
-
-            var supportRequest = await query
+                .Where(sr => sr.Id == supportRequestId)
                 .ProjectTo<SupportRequestDetailDto>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(ct);
 
             if (supportRequest == null)
                 return SupportRequestErrors.SupportRequestNotFound;
+
+            if (userRole != UserRole.Admin && userRole != UserRole.Technician && supportRequest.Client.Id != userId)
+                return UserErrors.Forbidden;
 
             return supportRequest;
         }
