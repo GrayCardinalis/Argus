@@ -21,30 +21,35 @@ namespace Argus.Controllers
         }
 
         [HttpGet("{id}", Name = ComponentRoutes.GetComponentById)]
-        public async Task<ActionResult<ComponentDto?>> GetComponentByIdAsync(Guid id, CancellationToken ct)
+        public async Task<ActionResult<ComponentDto>> GetComponentByIdAsync(Guid id, CancellationToken ct)
         {
-            var component = await componentService.GetComponentByIdAsync(id, ct);
-            return component is null
-                ? NotFound($"Component with id {id} not found.")
-                : Ok(component);
+            var result = await componentService.GetComponentByIdAsync(id, ct);
+
+            return result.Match<ActionResult<ComponentDto>>(
+                component => Ok(component),
+                errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPost(Name = ComponentRoutes.CreateComponent)]
-        public async Task<ActionResult<ComponentDto>> CreateComponentAsync(CreateComponentDto createComponentDto, CancellationToken ct)
+        public async Task<ActionResult<ComponentDto>> CreateComponentAsync([FromBody] CreateComponentDto dto, CancellationToken ct)
         {
-            var createdComponent = await componentService.CreateComponentAsync(createComponentDto, ct);
+            var result = await componentService.CreateComponentAsync(dto, ct);
 
-            return CreatedAtRoute(ComponentRoutes.GetComponentById, new { id = createdComponent.Id }, createdComponent);
+            return result.Match<ActionResult<ComponentDto>>(
+                component => CreatedAtRoute(ComponentRoutes.GetComponentById, new { id = component.Id }, component),
+                errors => Problem(errors));
         }
 
-        // SCENARIO 1: Full editing of the product card (Admin)
         [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPut("{id:guid}/name", Name = ComponentRoutes.UpdateComponentName)]
         public async Task<IActionResult> UpdateComponentNameAsync(Guid id, UpdateComponentNameDto dto, CancellationToken ct)
         {
-            var isUpdated = await componentService.UpdateComponentNameAsync(id, dto, ct);
-            return isUpdated ? NoContent() : NotFound($"Component with id {id} not found.");
+            var result = await componentService.UpdateComponentNameAsync(id, dto, ct);
+
+            return result.Match<IActionResult>(
+                success => NoContent(),
+                errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]

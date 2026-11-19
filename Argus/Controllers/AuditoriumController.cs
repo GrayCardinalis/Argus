@@ -32,18 +32,22 @@ namespace Argus.Controllers
         [HttpGet("{id}", Name = AuditoriumRoutes.GetAuditoriumById)]
         public async Task<ActionResult<AuditoriumDto>> GetAuditoriumByIdAsync(Guid id, CancellationToken ct)
         {
-            var auditorium = await auditoriumService.GetAuditoriumByIdAsync(id, ct);
-            return auditorium is null 
-                ? NotFound($"Auditorium with ID: {id} not found")
-                : Ok(auditorium);
+            var result = await auditoriumService.GetAuditoriumByIdAsync(id, ct);
+
+            return result.Match<ActionResult<AuditoriumDto>>(
+                auditorium => Ok(auditorium),
+                errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
         [HttpPost(Name = AuditoriumRoutes.CreateAuditorium)]
-        public async Task<ActionResult<AuditoriumDto>> CreateAuditoriumAsync(CreateAuditoriumDto createdAuditoriumDto, CancellationToken ct)
+        public async Task<ActionResult<AuditoriumDto>> CreateAuditoriumAsync([FromBody] CreateAuditoriumDto dto, CancellationToken ct)
         {
-            var createdAuditorium = await auditoriumService.CreateAuditoriumAsync(createdAuditoriumDto, ct);
-            return CreatedAtRoute(AuditoriumRoutes.GetAuditoriumById, new { id = createdAuditorium.Id }, createdAuditorium);
+            var result = await auditoriumService.CreateAuditoriumAsync(dto, ct);
+
+            return result.Match<ActionResult<AuditoriumDto>>(
+                auditorium => CreatedAtRoute(AuditoriumRoutes.GetAuditoriumById, new { id = auditorium.Id }, auditorium),
+                errors => Problem(errors));
         }
 
         [Authorize(Roles = nameof(UserRole.Admin))]
