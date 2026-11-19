@@ -31,6 +31,11 @@ namespace Argus.Validators.SupportRequest
                 .LessThan(x => x.CreatedTo)
                 .WithMessage("CreatedFrom must be less than CreatedTo.")
                 .When(x => x.CreatedFrom.HasValue && x.CreatedTo.HasValue);
+
+            RuleFor(x => x.ClientId)
+                .NotEqual(Guid.Empty)
+                .WithMessage("ClientId must not be an empty GUID.")
+                .When(x => x.ClientId.HasValue);
         }
     }
 }

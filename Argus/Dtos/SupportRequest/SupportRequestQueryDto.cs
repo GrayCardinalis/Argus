@@ -7,6 +7,7 @@ namespace Argus.Dtos.SupportRequest
     {
         public SupportRequestStatus? Status { get; set; }
         public Guid? ExecutorId { get; set; }
+        public Guid? ClientId { get; set; }
         public Guid? AuditoriumId { get; set; }
         public DateTimeOffset? CreatedFrom { get; set; }
         public DateTimeOffset? CreatedTo { get; set; }

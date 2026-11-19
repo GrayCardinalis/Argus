@@ -245,6 +245,9 @@ namespace Argus.Services
             if (userRole != UserRole.Admin && userRole != UserRole.Technician)
                 query = query.Where(sr => sr.ClientId == userId);
 
+            if (dto.ClientId is Guid clientId)
+                query = query.Where(sr => sr.ClientId == clientId);
+
             if (dto.Status is SupportRequestStatus status)
                 query = query.Where(sr => sr.Status == status);
 
